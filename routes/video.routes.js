@@ -12,9 +12,9 @@ router.get('/video',videoController.getVideo);
 router.post('/video', videoController.createVideo);
 
 // rutas put (Actualizar)
-router.put('/video', videoController.updateVideo);
+router.put('/video:id', videoController.updateVideo);
 
 //rutas delete (Eliminar)
-router.delete('/video', videoController.deleteVideo);
+router.delete('/video/:id', videoController.deleteVideo);
 //exportamos
 module.exports = router
