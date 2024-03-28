@@ -2,9 +2,26 @@
 const videoModel = require('../models/video.model.js')
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
-const getVideo = async (req, res) => {
+const getVideos = async (req, res) => {
+   try {
     const video = await videoModel.find();
     res.json(video);
+   } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+   }
+}
+
+//Este método devuelve un video según el id indicado
+const getVideo = async (req, res) => {
+   
+    try {
+        const findVideo = await videoModel.findOne({_id: req.params.id});
+        res.send(findVideo)
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error);
+    }
 }
 
 // Este método nos permite crear de un nuevo  objeto video y añadirlo a la base de datos
@@ -55,7 +72,7 @@ const updateVideo = async (req, res) => {
 const deleteVideo = async (req, res) => {
 
     try {
-        const deleteVideo = await videoModel.where(req.params.id).findOneAndDelete();
+        const deleteVideo = await videoModel.findOneAndDelete({_id: req.params.id});
         res.send(deleteVideo)
     } catch (error) {
         console.error(error);
@@ -63,4 +80,4 @@ const deleteVideo = async (req, res) => {
     }
 }
 
-module.exports = { getVideo, updateVideo, deleteVideo, createVideo }
+module.exports = { getVideo, updateVideo, deleteVideo, createVideo, getVideos }
