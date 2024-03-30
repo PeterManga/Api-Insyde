@@ -1,5 +1,6 @@
 //modulos necesarios
 const videoModel = require('../models/video.model.js')
+const cloudinaryData = require('../utils/cloudinary.js')
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
 const getVideos = async (req, res) => {
@@ -17,6 +18,11 @@ const getVideo = async (req, res) => {
    
     try {
         const findVideo = await videoModel.findOne({_id: req.params.id});
+        if(!findVideo){
+            res.status(404).json({
+                message: 'El video no existe'
+            })
+        }
         res.send(findVideo)
     } catch (error) {
         console.error(error);
@@ -28,11 +34,31 @@ const getVideo = async (req, res) => {
 const createVideo = async (req, res) => {
 
     try {
+        //comprobamos que se ha subido un archivo
+        console.log(req.files)
         //recogemos los datos
-        const { nombre, url, descripcion, ubicacion, duracion, formato } = req.body;
+        const { nombre, descripcion, ubicacion, duracion, formato } = req.body;
+        const nuevoVideo = new videoModel({ nombre, descripcion, ubicacion, duracion, formato });
+        
+
+        if (req.files?.archivo) {
+            const result = await cloudinaryData.uploadData(req.files.archivo.tempFilePath)
+            console.log(result)
+            
+
+            nuevoVideo.datos ={
+                public_id : result.public_id,
+                url: result.secure_url,
+                format: result.format,
+                width: result.width,
+                height: result.height
+            }
+            const response = await cloudinaryData.api.resource(public_id, { resource_type: 'video' });
+            const duration = response.duration;
+            console.log(duration)
+        }
+        
         //asignamos los datos recogidos al nuevo video
-        const nuevoVideo = new videoModel({ nombre, url, descripcion, ubicacion, duracion, formato });
-        console.log(nuevoVideo)
         await nuevoVideo.save();
         res.status(201).json(nuevoVideo);
 
@@ -52,7 +78,6 @@ const updateVideo = async (req, res) => {
         //Recogemos los datos que nos ingresará el usuario.
         const update = {
             nombre: req.body.nombre,
-            url: req.body.url,
             descripcion: req.body.descripcion,
             ubicacion: req.body.ubicacion,
             duracion: req.body.duracion,
@@ -61,6 +86,11 @@ const updateVideo = async (req, res) => {
         const updateVideo = await videoModel.findOneAndUpdate(filter, update, {
             new: true
         });
+        if(!updateVideo){
+            res.status(404).json({
+                message: 'El video no existe'
+            })
+        }
         //mostramos los datos actualizados
         res.send(updateVideo)
     } catch (error) {
@@ -73,6 +103,11 @@ const deleteVideo = async (req, res) => {
 
     try {
         const deleteVideo = await videoModel.findOneAndDelete({_id: req.params.id});
+        if(!deleteVideo){
+            res.status(404).json({
+                message: 'El video no existe'
+            })
+        }
         res.send(deleteVideo)
     } catch (error) {
         console.error(error);

@@ -7,7 +7,7 @@ const videoController = require('../controller/video.controller')
 
 //rutas get
 router.get('/video',videoController.getVideos);
-router.get('/video/:id', videoController.getVideo);
+router.get('/video/:id',videoController.getVideo);
 
 //rutas post (Crear)
 router.post('/video', videoController.createVideo);

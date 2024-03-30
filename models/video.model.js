@@ -2,17 +2,13 @@
 const moongose = require('mongoose');
 
 // Definición del esquema
-const videoSchema=moongose.Schema({
+const videoSchema = moongose.Schema({
     nombre: {
         type: String
     },
-    url: {
-        type: String
-       
-    },
     descripcion: {
         type: String,
-       
+
     },
     ubicacion: {
         type: String
@@ -20,11 +16,15 @@ const videoSchema=moongose.Schema({
     duracion: {
         type: String
     },
-    formato:{
-        type: String
-      
+    datos: {
+        public_id: String,
+        url: String,
+        resource_type: String,
+        format: String,
+        width: String,
+        height: String
     }
-},{
+}, {
     timestamps: true
 })
 
