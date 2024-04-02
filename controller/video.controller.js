@@ -1,24 +1,25 @@
 //modulos necesarios
-const videoModel = require('../models/video.model.js')
+const videoModel = require('../models/video.model.js');
+const cloudinary = require('../utils/cloudinary.js');
 const cloudinaryData = require('../utils/cloudinary.js')
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
 const getVideos = async (req, res) => {
-   try {
-    const video = await videoModel.find();
-    res.json(video);
-   } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
-   }
+    try {
+        const video = await videoModel.find();
+        res.json(video);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
 }
 
 //Este método devuelve un video según el id indicado
 const getVideo = async (req, res) => {
-   
+
     try {
-        const findVideo = await videoModel.findOne({_id: req.params.id});
-        if(!findVideo){
+        const findVideo = await videoModel.findOne({ _id: req.params.id });
+        if (!findVideo) {
             res.status(404).json({
                 message: 'El video no existe'
             })
@@ -30,34 +31,46 @@ const getVideo = async (req, res) => {
     }
 }
 
+//metodo para obtener los metadatos de un video (experimental y así obtener la duración de este)
+const getMetadatos = async (req, res) => {
+    try {
+        const metadatosVideo = await cloudinary.getDuration(req.params.id)
+        console.log(metadatosVideo)
+        res.send(metadatosVideo)
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener los metadatos' });
+    }
+}
+
 // Este método nos permite crear de un nuevo  objeto video y añadirlo a la base de datos
 const createVideo = async (req, res) => {
 
     try {
         //comprobamos que se ha subido un archivo
-        console.log(req.files)
+        //console.log(req.files)
         //recogemos los datos
-        const { nombre, descripcion, ubicacion, duracion, formato } = req.body;
-        const nuevoVideo = new videoModel({ nombre, descripcion, ubicacion, duracion, formato });
-        
+        const { nombre, descripcion, ubicacion } = req.body;
+        const nuevoVideo = new videoModel({ nombre, descripcion, ubicacion });
+
 
         if (req.files?.archivo) {
             const result = await cloudinaryData.uploadData(req.files.archivo.tempFilePath)
             console.log(result)
-            
 
-            nuevoVideo.datos ={
-                public_id : result.public_id,
+
+            nuevoVideo.datos = {
+                public_id: result.public_id,
                 url: result.secure_url,
                 format: result.format,
                 width: result.width,
                 height: result.height
             }
-            const response = await cloudinaryData.api.resource(public_id, { resource_type: 'video' });
-            const duration = response.duration;
-            console.log(duration)
+
+
         }
-        
+
         //asignamos los datos recogidos al nuevo video
         await nuevoVideo.save();
         res.status(201).json(nuevoVideo);
@@ -86,7 +99,7 @@ const updateVideo = async (req, res) => {
         const updateVideo = await videoModel.findOneAndUpdate(filter, update, {
             new: true
         });
-        if(!updateVideo){
+        if (!updateVideo) {
             res.status(404).json({
                 message: 'El video no existe'
             })
@@ -102,8 +115,8 @@ const updateVideo = async (req, res) => {
 const deleteVideo = async (req, res) => {
 
     try {
-        const deleteVideo = await videoModel.findOneAndDelete({_id: req.params.id});
-        if(!deleteVideo){
+        const deleteVideo = await videoModel.findOneAndDelete({ _id: req.params.id });
+        if (!deleteVideo) {
             res.status(404).json({
                 message: 'El video no existe'
             })
@@ -115,4 +128,4 @@ const deleteVideo = async (req, res) => {
     }
 }
 
-module.exports = { getVideo, updateVideo, deleteVideo, createVideo, getVideos }
+module.exports = { getVideo, updateVideo, deleteVideo, createVideo, getVideos, getMetadatos }

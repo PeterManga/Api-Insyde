@@ -2,7 +2,6 @@
 const express = require('express');
 const indexRoutes = require('./routes/index.routes');
 const videoRoutes = require('./routes/video.routes')
-const imageRoutes = require('./routes/image.routes')
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
@@ -23,6 +22,5 @@ app.use(fileUpload({
 //usamos las rutas definidas en otros archivos
 app.use(indexRoutes)
 app.use(videoRoutes)
-app.use(imageRoutes)
 
 module.exports = app

@@ -14,6 +14,15 @@ async function uploadData(filePath){
     })
 }
 
+async function getDuration(public_id){
+    return await cloudinary.api.resource_by_asset_id(public_id,{
+        media_metadata: true
+    })
+
+    
+}
+const apiCloudinary=cloudinary.api
+
 module.exports = {
-    uploadData: uploadData
+    uploadData: uploadData, getDuration:getDuration, apiCloudinary
 };
