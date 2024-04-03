@@ -2,7 +2,7 @@
 const moongose = require('mongoose');
 
 // Definición del esquema
-const videoSchema = moongose.Schema({
+const fileSchema = moongose.Schema({
     nombre: {
         type: String
     },
@@ -30,7 +30,7 @@ const videoSchema = moongose.Schema({
 })
 
 // Asociación con el modelo
-let Video = moongose.model('video', videoSchema);
+let File = moongose.model('file', fileSchema);
 
 //exportamos
-module.exports = Video
+module.exports = File

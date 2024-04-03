@@ -1,14 +1,13 @@
 //modulos necesarios
-const videoModel = require('../models/video.model.js');
+const fileModel = require('../models/video.model.js');
 const cloudinary = require('../utils/cloudinary.js');
-const cloudinaryData = require('../utils/cloudinary.js')
 const fsExtra = require('fs-extra')
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
-const getVideos = async (req, res) => {
+const getFiles = async (req, res) => {
     try {
-        const video = await videoModel.find();
-        res.json(video);
+        const file = await fileModel.find();
+        res.json(file);
     } catch (error) {
         console.log(error);
         res.status(500).send(error);
@@ -16,16 +15,16 @@ const getVideos = async (req, res) => {
 }
 
 //Este método devuelve un video según el id indicado
-const getVideo = async (req, res) => {
+const getFile = async (req, res) => {
 
     try {
-        const findVideo = await videoModel.findOne({ _id: req.params.id });
-        if (!findVideo) {
+        const findFile = await fileModel.findOne({ _id: req.params.id });
+        if (!findFile) {
             res.status(404).json({
                 message: 'El video no existe'
             })
         }
-        res.send(findVideo)
+        res.send(findFile)
     } catch (error) {
         console.error(error);
         res.status(500).send(error);
@@ -46,7 +45,7 @@ const getMetadatos = async (req, res) => {
 }
 
 // Este método nos permite crear de un nuevo  objeto video y añadirlo a la base de datos
-const createVideo = async (req, res) => {
+const createFile = async (req, res) => {
 
     try {
         //comprobamos que se ha subido un archivo
@@ -57,10 +56,11 @@ const createVideo = async (req, res) => {
         else {
             //recogemos los datos
             const { nombre, descripcion, ubicacion } = req.body;
-            const nuevoVideo = new videoModel({ nombre, descripcion, ubicacion });
+            const nuevoFile = new fileModel({ nombre, descripcion, ubicacion });
 
             if (req.files?.archivo) {
                 let type;
+                
                 //detectamos si el usuario esta intentando ingresar una imagen o un video
                 //dependiendo del archivo el tipo será un 'video' o 'imagen'
                 if (req.files.archivo.mimetype.includes("video")) {
@@ -70,19 +70,21 @@ const createVideo = async (req, res) => {
                 }
                 /*El video introducido es detectado en los archivos temporales
                 y esperamos a que sea subido a cloudinary*/
-                const result = await cloudinaryData.uploadData(req.files.archivo.tempFilePath, type)
+                const result = await cloudinary.uploadData(req.files.archivo.tempFilePath, type)
+                 //borramos el archivo localmente
+                await fsExtra.unlink(req.files.archivo.tempFilePath)
+                const publicID = result.public_id;
                 //console.log(result)
                 //recogemos los datos del video subido y se los añadimos al modelo
-                nuevoVideo.datos = {
+                nuevoFile.datos = {
                     public_id: result.public_id,
                     url: result.secure_url,
                     format: result.format,
                     width: result.width,
-                    height: result.height
-                }
-                //borramos el archivo localmente
-                await fsExtra.unlink(req.files.archivo.tempFilePath)
-                var publicID = result.public_id
+                    height: result.height,
+                }                
+               
+                
 
             }
             else {
@@ -91,11 +93,10 @@ const createVideo = async (req, res) => {
                 res.status(400).send("Ingrese el archivo en el parámetro 'archivo'")
             }
 
-            //aqui estaba antes nuevo archivo.save y re.status
             //asignamos los datos recogidos al nuevo video y esperamos a que se guarden los datos
-            await nuevoVideo.save();
+            await nuevoFile.save();
             //si todo está bien, nos devuelve los datos subidos
-            res.status(201).json(nuevoVideo);
+            return res.status(201).json(nuevoFile);
 
         }
 
@@ -107,7 +108,7 @@ const createVideo = async (req, res) => {
 }
 
 //Este método nos permite actualizar la información de un video alojado en la base de datos
-const updateVideo = async (req, res) => {
+const updateFile = async (req, res) => {
     try {
         //usamos el id proporcionado en la url 
         const filter = { _id: req.params.id }
@@ -122,17 +123,17 @@ const updateVideo = async (req, res) => {
         }
         //bucamos en la base de datos el objeto que coincide con la id proporcionada
         // y lo actualizamos
-        const updateVideo = await videoModel.findOneAndUpdate(filter, update, {
+        const updateFile = await fileModel.findOneAndUpdate(filter, update, {
             new: true
         });
         //si el 
-        if (!updateVideo) {
+        if (!updateFile) {
             res.status(404).json({
                 message: 'Los datos no son correctos'
             })
         }
         //mostramos los datos actualizados
-        res.send(updateVideo)
+        res.send(updateFile)
     } catch (error) {
         res.status(500).send(error);
     }
@@ -142,13 +143,17 @@ const updateVideo = async (req, res) => {
 const deleteData = async (req, res) => {
 
     try {
-        const File = await videoModel.findOneAndDelete({ _id: req.params.id });
+        const File = await fileModel.findOneAndDelete({ _id: req.params.id });
         if (!File) return res.status(404).json({
             message: 'El video no existe'
         })
-        if(File.datos.format=="mp4")
-        console.log(File.datos.public_id)
-        await cloudinary.deleteFile(File.datos.public_id)
+        if (File.datos.format == "mp4"){
+           var type = "video" 
+        }
+        else{
+            type = "image"
+        }
+        await cloudinary.deleteFile(File.datos.public_id, type)
         return res.send(File)
     } catch (error) {
         console.error(error);
@@ -157,4 +162,4 @@ const deleteData = async (req, res) => {
 }
 
 
-module.exports = { getVideo, updateVideo, deleteData, createVideo, getVideos, getMetadatos }
+module.exports = { getFile, updateFile, deleteData, createFile, getFiles, getMetadatos }

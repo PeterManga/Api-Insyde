@@ -1,23 +1,23 @@
 //importamos los módulos necesarios.
 const express = require('express');
 const router = express.Router();
-const videoController = require('../controller/video.controller')
+const fileController = require('../controller/video.controller')
 
 //definimos las rutas
 
 //rutas get
-router.get('/video',videoController.getVideos);
-router.get('/video/:id',videoController.getVideo);
-router.get('/videoMetadatos/:id', videoController.getMetadatos)
+router.get('/files',fileController.getFiles);
+router.get('/file/:id',fileController.getFile);
+router.get('/fileMetadatos/:id', fileController.getMetadatos)
 
 //rutas post (Crear)
-router.post('/video', videoController.createVideo);
+router.post('/file', fileController.createFile);
 
 // rutas put (Actualizar)
-router.put('/video/:id', videoController.updateVideo);
+router.put('/file/:id', fileController.updateFile);
 
 //rutas delete (Eliminar)
-router.delete('/video/:id', videoController.deleteData);
+router.delete('/file/:id', fileController.deleteData);
 
 
 //exportamos
