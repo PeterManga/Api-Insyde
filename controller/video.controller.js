@@ -49,17 +49,28 @@ const createVideo = async (req, res) => {
 
     try {
         //comprobamos que se ha subido un archivo
-        //console.log(req.files)
+        console.log(req.files)
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).send('No se ha encontrado ningún archivo.');
+        }
         //recogemos los datos
         const { nombre, descripcion, ubicacion } = req.body;
         const nuevoVideo = new videoModel({ nombre, descripcion, ubicacion });
 
-
         if (req.files?.archivo) {
-            const result = await cloudinaryData.uploadData(req.files.archivo.tempFilePath)
-            console.log(result)
-
-
+            let type;
+            //detectamos si el usuario esta intentando ingresar una imagen o un video
+            //dependiendo del archivo el tipo será un 'video' o 'imagen'
+            if (req.files.archivo.mimetype.includes("video")) {
+                type="video"
+            } else {
+                type="image"
+            }
+            /*El video introducido es detectado en los archivos temporales
+            y esperamos a que sea subido a cloudinary*/
+            const result = await cloudinaryData.uploadData(req.files.archivo.tempFilePath,type)
+            //console.log(result)
+            //recogemos los datos del video subido y se los añadimos al modelo
             nuevoVideo.datos = {
                 public_id: result.public_id,
                 url: result.secure_url,
@@ -67,13 +78,32 @@ const createVideo = async (req, res) => {
                 width: result.width,
                 height: result.height
             }
+           var publicID =result.public_id
+            //console.log(nuevoVideo)           
 
-
+            //asignamos los datos recogidos al nuevo video y esperamos a que se guarden los datos
+            //console.log(nuevoVideo)
+            await nuevoVideo.save();
+            //si todo está bien, nos devuelve los datos subidos
+            res.status(201).json(nuevoVideo);
         }
-
-        //asignamos los datos recogidos al nuevo video
-        await nuevoVideo.save();
-        res.status(201).json(nuevoVideo);
+        else {
+            //si el archivo introducido no se encuentra en el campo 'archivo' o no se introduce ninguno
+            //se le mostrará el siguiente mensaje al usuario
+            res.status(400).send("Ingrese el archivo en el parámetro 'archivo'")
+        }
+        //En desarrollo: aqui intento obtener la duración a traves de los metadatos
+        //e introducir estos campos al modelo
+        try {
+            
+            const duracion = await cloudinaryData.apiCloudinary.resource_by_asset_id(publicID,{
+                media_metadata: true
+            })
+            console.log(duracion)
+        } catch (error) {
+            res.status(500).send("error al hacer al consulta de duracion")
+        }
+        //aqui estaba antes nuevo archivo.save y re.status 
 
     } catch (error) {
         console.error(error);
@@ -96,12 +126,15 @@ const updateVideo = async (req, res) => {
             duracion: req.body.duracion,
             formato: req.body.formato
         }
+        //bucamos en la base de datos el objeto que coincide con la id proporcionada
+        // y lo actualizamos
         const updateVideo = await videoModel.findOneAndUpdate(filter, update, {
             new: true
         });
+        //si el 
         if (!updateVideo) {
             res.status(404).json({
-                message: 'El video no existe'
+                message: 'Los datos no son correctos'
             })
         }
         //mostramos los datos actualizados

@@ -22,7 +22,8 @@ const videoSchema = moongose.Schema({
         resource_type: String,
         format: String,
         width: String,
-        height: String
+        height: String,
+        duracion: String
     }
 }, {
     timestamps: true

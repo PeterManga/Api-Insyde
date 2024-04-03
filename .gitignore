@@ -1,2 +1,4 @@
 **/node_modules
 dasd
+**/temp
+.env

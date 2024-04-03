@@ -8,9 +8,10 @@ cloudinary.config({
     api_secret: process.env.api_secret
   });
 
-async function uploadData(filePath){
+async function uploadData(filePath,type){
     return await cloudinary.uploader.upload(filePath,{
-        folder: "Archivos"
+        folder: "Archivos",
+        resource_type: type
     })
 }
 
