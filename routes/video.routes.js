@@ -17,7 +17,7 @@ router.post('/video', videoController.createVideo);
 router.put('/video/:id', videoController.updateVideo);
 
 //rutas delete (Eliminar)
-router.delete('/video/:id', videoController.deleteVideo);
+router.delete('/video/:id', videoController.deleteData);
 
 
 //exportamos

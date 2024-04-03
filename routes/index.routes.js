@@ -7,5 +7,5 @@ router.get('/', (req, res)=>{
 });
 
 
-//exportamos el m´pdulo
+//exportamos el mpdulo
 module.exports = router;

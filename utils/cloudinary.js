@@ -13,6 +13,13 @@ async function uploadData(filePath,type){
         folder: "Archivos",
         resource_type: type
     })
+    
+}
+async function deleteFile(public_id, type){
+    return await cloudinary.uploader.destroy(public_id,{
+        resource_type: type
+    })
+    
 }
 
 async function getDuration(public_id){
@@ -25,5 +32,5 @@ async function getDuration(public_id){
 const apiCloudinary=cloudinary.api
 
 module.exports = {
-    uploadData: uploadData, getDuration:getDuration, apiCloudinary
+    uploadData: uploadData, getDuration:getDuration, deleteFile:deleteFile
 };
