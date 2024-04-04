@@ -1,9 +1,13 @@
+//importamos los modulos necesarios
 const mongoose = require('mongoose');
 const app = require('./app')
 require('dotenv').config();
 mongoose.Promise = global.Promise;
 
+//Obtenemos la url de la conexion
 const url =process.env.URL
+
+//realizamos la conexion con mongoose
 mongoose.connect(url);
 
 

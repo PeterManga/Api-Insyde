@@ -29,10 +29,10 @@ async function deleteFile(public_id, type){
 async function getDuration(public_id){
     return await cloudinary.api.resource_by_asset_id(public_id,{
         media_metadata: true
-    })
-
-    
+    })   
 }
+
+//funcion experimental para añadir la duracion a un video que acabamos de crear
 async function addDuration(public_id){
     var longitud_video;
     const duration = await getDuration(public_id)

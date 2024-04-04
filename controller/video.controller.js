@@ -49,15 +49,17 @@ const createFile = async (req, res) => {
 
     try {
         //comprobamos que se ha subido un archivo
-        console.log(req.files)
         if (!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).send('No se ha encontrado ningún archivo.');
         }
         else {
             //recogemos los datos
             const { nombre, descripcion, ubicacion } = req.body;
+            
+            //Los asignamos al modelo
             const nuevoFile = new fileModel({ nombre, descripcion, ubicacion });
 
+            //Comprobamos que el usuario ingresa el archivo en el campo "archivo" 
             if (req.files?.archivo) {
                 let type;
                 
@@ -71,10 +73,16 @@ const createFile = async (req, res) => {
                 /*El video introducido es detectado en los archivos temporales
                 y esperamos a que sea subido a cloudinary*/
                 const result = await cloudinary.uploadData(req.files.archivo.tempFilePath, type)
-                 //borramos el archivo localmente
+                
+                //borramos el archivo localmente
                 await fsExtra.unlink(req.files.archivo.tempFilePath)
-                const publicID = result.public_id;
-                //console.log(result)
+                
+                //Guardamos el assetID que será usado para obtener la duracion del video en sus metadatos
+                const assetID = result.asset_id;
+                
+                //Obtenemos los metadatos
+                const metadatosVideo = await cloudinary.getDuration(assetID)
+
                 //recogemos los datos del video subido y se los añadimos al modelo
                 nuevoFile.datos = {
                     public_id: result.public_id,
@@ -82,14 +90,13 @@ const createFile = async (req, res) => {
                     format: result.format,
                     width: result.width,
                     height: result.height,
+                    //Asigamos el campo 'duracion' obtenido de los metadatos
+                    duracion: metadatosVideo.video_metadata.format_duration                 
                 }                
                
-                
-
             }
             else {
                 //si el archivo introducido no se encuentra en el campo 'archivo' o no se introduce ninguno
-                //se le mostrará el siguiente mensaje al usuario
                 res.status(400).send("Ingrese el archivo en el parámetro 'archivo'")
             }
 
@@ -97,7 +104,6 @@ const createFile = async (req, res) => {
             await nuevoFile.save();
             //si todo está bien, nos devuelve los datos subidos
             return res.status(201).json(nuevoFile);
-
         }
 
     } catch (error) {

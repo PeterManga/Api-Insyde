@@ -1,11 +1,11 @@
 // Importar módulos necesarios
 const express = require('express');
 const indexRoutes = require('./routes/index.routes');
-const videoRoutes = require('./routes/video.routes')
+const videoRoutes = require('./routes/video.routes');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
-const cloudinary = require('cloudinary').v2
+//const cloudinary = require('cloudinary').v2
 
 //Crear una instancia de Express
 const app = express();
