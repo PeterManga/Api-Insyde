@@ -5,6 +5,8 @@ const videoRoutes = require('./routes/video.routes');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
+
+const downloader = require('./utils/downloader')
 //const cloudinary = require('cloudinary').v2
 
 //Crear una instancia de Express
@@ -22,5 +24,8 @@ app.use(fileUpload({
 //usamos las rutas definidas en otros archivos
 app.use(indexRoutes)
 app.use(videoRoutes)
+
+const baseUrl = 'https://res.cloudinary.com/decmk6sb6/video/upload/v1712735328/Archivos/ppplks6qvpenuhwzmrch.mp4'
+downloader.fileDowloader(baseUrl)
 
 module.exports = app

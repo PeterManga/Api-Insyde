@@ -149,16 +149,20 @@ const updateFile = async (req, res) => {
 const deleteData = async (req, res) => {
 
     try {
+        //Busca el archivo con id proporcionado en la base de datos y este es borrado
         const File = await fileModel.findOneAndDelete({ _id: req.params.id });
+            //Si el archivo, no existe, se mostrará el siguiente error
         if (!File) return res.status(404).json({
             message: 'El video no existe'
         })
+            //Detectamos si el archivo es un video o imagen
         if (File.datos.format == "mp4"){
            var type = "video" 
         }
         else{
             type = "image"
         }
+        //Se elimina de cloudinary el archivo asociado al objeto eliminado de mongo
         await cloudinary.deleteFile(File.datos.public_id, type)
         return res.send(File)
     } catch (error) {
