@@ -5,14 +5,19 @@ const fsExtra = require('fs-extra')
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
 const getFiles = async (req, res) => {
+    console.log(req.query)
+
     try {
-        const file = await fileModel.find();
+        //El parametro re.query devuelve los objetos que coinciden 
+        //con los parametros solicitados por el usuario
+        const file = await fileModel.find(req.query);
         res.json(file);
     } catch (error) {
         console.log(error);
         res.status(500).send(error);
     }
 }
+
 
 //Este método devuelve un video según el id indicado
 const getFile = async (req, res) => {
@@ -54,10 +59,14 @@ const createFile = async (req, res) => {
         }
         else {
             //recogemos los datos
-            const { nombre, descripcion, ubicacion } = req.body;
+            //const { nombre, descripcion, ubicacion } = req.body;
             
             //Los asignamos al modelo
-            const nuevoFile = new fileModel({ nombre, descripcion, ubicacion });
+            const nuevoFile = new fileModel({ 
+                nombre: req.body.nombre.toLowerCase() ,
+                descripcion: req.body.descripcion.toLowerCase(),
+                ubicacion: req.body.ubicacion.toLowerCase()
+            });
 
             //Comprobamos que el usuario ingresa el archivo en el campo "archivo" 
             if (req.files?.archivo) {
@@ -121,9 +130,9 @@ const updateFile = async (req, res) => {
 
         //Recogemos los datos que nos ingresará el usuario.
         const update = {
-            nombre: req.body.nombre,
-            descripcion: req.body.descripcion,
-            ubicacion: req.body.ubicacion,
+            nombre: req.body.nombre.toLowerCase(),
+            descripcion: req.body.descripcion.toLowerCase(),
+            ubicacion: req.body.ubicacion.toLowerCase(),
             duracion: req.body.duracion,
             formato: req.body.formato
         }
@@ -172,4 +181,4 @@ const deleteData = async (req, res) => {
 }
 
 
-module.exports = { getFile, updateFile, deleteData, createFile, getFiles, getMetadatos }
+module.exports = { getFile, updateFile, deleteData, createFile, getFiles, getMetadatos}

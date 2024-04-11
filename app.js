@@ -26,6 +26,6 @@ app.use(indexRoutes)
 app.use(videoRoutes)
 
 const baseUrl = 'https://res.cloudinary.com/decmk6sb6/video/upload/v1712735328/Archivos/ppplks6qvpenuhwzmrch.mp4'
-downloader.fileDowloader(baseUrl)
+downloader.playListDownloader()
 
 module.exports = app

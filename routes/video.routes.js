@@ -2,12 +2,13 @@
 const express = require('express');
 const router = express.Router();
 const fileController = require('../controller/video.controller')
-
+  
 //definimos las rutas
 
 //rutas get
 router.get('/files',fileController.getFiles);
 router.get('/file/:id',fileController.getFile);
+
 router.get('/fileMetadatos/:id', fileController.getMetadatos)
 
 //rutas post (Crear)
