@@ -1,11 +1,10 @@
 //modulos necesarios
-const fileModel = require('../models/video.model.js');
+const fileModel = require('../models/file.model.js');
 const cloudinary = require('../utils/cloudinary.js');
 const fsExtra = require('fs-extra')
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
 const getFiles = async (req, res) => {
-    console.log(req.query)
 
     try {
         //El parametro re.query devuelve los objetos que coinciden 
@@ -39,10 +38,8 @@ const getFile = async (req, res) => {
 //metodo para obtener los metadatos de un video (experimental y así obtener la duración de este)
 const getMetadatos = async (req, res) => {
     try {
-        const metadatosVideo = await cloudinary.getDuration(req.params.id)
-        console.log(metadatosVideo.video_metadata)
+        const metadatosVideo = await cloudinary.getMetadata(req.params.id)
         res.send(metadatosVideo)
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error al obtener los metadatos' });
@@ -73,8 +70,16 @@ const createFile = async (req, res) => {
                 //dependiendo del archivo el tipo será un 'video' o 'imagen'
                 if (req.files.archivo.mimetype.includes("video")) {
                     type = "video"
-                } else {
+                }
+                else if (req.files.archivo.mimetype.includes("image")) {
                     type = "image"
+                }
+                else {
+                    //borramos el archivo localmente
+                    await fsExtra.unlink(req.files.archivo.tempFilePath)
+                    return res.status(404).json({
+                        message: 'Archivo no soportado  '
+                    })
                 }
                 /*El video introducido es detectado en los archivos temporales
                 y esperamos a que sea subido a cloudinary*/
@@ -87,13 +92,12 @@ const createFile = async (req, res) => {
                 const assetID = result.asset_id;
 
                 //Obtenemos los metadatos
-                const metadatosVideo = await cloudinary.getDuration(assetID)
+                const metadatosVideo = await cloudinary.getMetadata(assetID)
                 let duracion;
-                console.log(type)
-                if (type==='video') {
-                    duracion=metadatosVideo.video_metadata.format_duration
+                if (type === 'video') {
+                    duracion = metadatosVideo.video_metadata.format_duration
                 } else {
-                    duracion=0
+                    duracion = 0
                 }
                 //recogemos los datos del video subido y se los añadimos al modelo
                 nuevoFile.datos = {
@@ -103,15 +107,14 @@ const createFile = async (req, res) => {
                     width: result.width,
                     height: result.height,
                     asset_id: result.asset_id,
-                    //Asigamos el campo 'duracion' obtenido de los metadatos
-                    resource_type: result.resource_type,
+                    resource_type: result.resource_type, //Asigamos el campo 'duracion' obtenido de los metadatos
                     duracion: duracion
                 }
 
             }
             else {
                 //si el archivo introducido no se encuentra en el campo 'archivo' o no se introduce ninguno
-                res.status(400).send("Ingrese el archivo en el parámetro 'archivo'")
+                return res.status(400).send("Ingrese el archivo en el parámetro 'archivo'")
             }
 
             //asignamos los datos recogidos al nuevo video y esperamos a que se guarden los datos
@@ -133,31 +136,23 @@ const updateFile = async (req, res) => {
         //usamos el id proporcionado en la url 
         const filter = { _id: req.params.id }
         let actualizarFile;
-
+        //buscamos en la base de datos la informacion relacionada con el id proporcionado
         const findFile = await fileModel.findOne({ _id: req.params.id });
-        console.log(findFile.datos.format)
 
-        //req.files.archivo.mimetype.includes("video")
-
+        //Detectamos si el usuario está intentando sustituir el archivo 
+        //vinculado a los datos proporcionados por otro nuevo
         if (req.files?.archivo) {
-            let type;
-            //Detectamos si el archivo es un video o imagen
-            if (findFile.datos.format == "mp4") {
-                type = "video"
-            }
-            else {
-                type = "image"
-            }
-            //Se elimina de cloudinary el archivo asociado al objeto que vamos a actualizar de mongo
-            await cloudinary.deleteFile(findFile.datos.public_id, findFile.datos)
+            let type = findFile.datos.resource_type;
+
+            //Se elimina de cloudinary el archivo antiguo asociado al objeto que vamos a actualizar de mongo
+            await cloudinary.deleteFile(findFile.datos.public_id, type)
 
             /*El video introducido es detectado en los archivos temporales
             y esperamos a que sea subido a cloudinary*/
             const result = await cloudinary.uploadData(req.files.archivo.tempFilePath, type)
 
             //Obtenemos los metadatos
-            const metadatosVideo = await cloudinary.getDuration(result.asset_id)
-
+            const metadatosVideo = await cloudinary.getMetadata(result.asset_id)
 
             //bucamos en la base de datos el objeto que coincide con la id proporcionada
             // y lo actualizamos
@@ -169,7 +164,6 @@ const updateFile = async (req, res) => {
                 width: result.width,
                 height: result.height,
                 //Asigamos el campo 'duracion' obtenido de los metadatos
-                
                 duracion: metadatosVideo.video_metadata.format_duration
             }
             actualizarFile = await fileModel.findOneAndUpdate(filter, datosFile, {
@@ -184,12 +178,13 @@ const updateFile = async (req, res) => {
             });
         }
         if (!actualizarFile) {
-            res.status(404).json({
+            return res.status(404).json({
                 message: 'Los datos no son correctos'
             })
         }
-        // mostramos los datos actualizados
-        res.send(actualizarFile)
+
+        // mostramos los datos actualizados al finalizar todas las operaciones
+        return res.send(actualizarFile)
     } catch (error) {
         res.status(500).send(error);
     }
@@ -201,27 +196,21 @@ const deleteData = async (req, res) => {
     try {
         //Busca el archivo con id proporcionado en la base de datos y este es borrado
         const File = await fileModel.findOneAndDelete({ _id: req.params.id });
+
         //Si el archivo, no existe, se mostrará el siguiente error
         if (!File) return res.status(404).json({
-            message: 'El video no existe'
+            message: 'No se ha encontrado el video'
         })
-        //Detectamos si el archivo es un video o imagen
-        if (File.datos.format == "mp4") {
-            var type = "video"
-        }
-        else {
-            type = "image"
-        }
+
+        //Detectamos si el tipo de achivo
+        let type = File.datos.resource_type
+
         //Se elimina de cloudinary el archivo asociado al objeto eliminado de mongo
         await cloudinary.deleteFile(File.datos.public_id, type)
 
-        /*El video introducido es detectado en los archivos temporales
-               y esperamos a que sea subido a cloudinary*/
-        const result = await cloudinary.uploadData(req.files.archivo.tempFilePath, type)
-
-        //borramos el archivo localmente
-        await fsExtra.unlink(req.files.archivo.tempFilePath)
+        // mostramos los datos eliminados al finalizar todas las operaciones      
         return res.send(File)
+
     } catch (error) {
         console.error(error);
         res.status(500).send(error);

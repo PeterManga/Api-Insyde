@@ -8,7 +8,6 @@ const fileSchema = moongose.Schema({
     },
     descripcion: {
         type: String,
-
     },
     ubicacion: {
         type: String
@@ -19,14 +18,17 @@ const fileSchema = moongose.Schema({
     datos: {
         public_id: String,
         url: String,
+        //tipo de recurso video/imagen/etc
         resource_type: String,
         format: String,
         asset_id: String,
         width: String,
         height: String,
+        //Este campo será util a la hora de crear una playlist para los videos
         duracion: Number
     }
 }, {
+    //Este campo añade la fecha de creación y la fecha de actualizacion
     timestamps: true
 })
 

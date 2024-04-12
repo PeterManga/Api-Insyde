@@ -1,6 +1,7 @@
 const app = require('../app')
 require('dotenv').config();
 const cloudinary = require('cloudinary').v2
+
 // Datos necesarios para el correcto funcionamiento de la api cloudinary
 // Los datos están protegidos en el archivo ".env"
 cloudinary.config({ 
@@ -17,6 +18,7 @@ async function uploadData(filePath,type){
     })
     
 }
+
 //Función para borrar los archivos de cloudinary
 async function deleteFile(public_id, type){
     return await cloudinary.uploader.destroy(public_id,{
@@ -26,7 +28,7 @@ async function deleteFile(public_id, type){
 }
 
 // Funcion para obtener la duración de un video
-async function getDuration(asset_id){
+async function getMetadata(asset_id){
     return await cloudinary.api.resource_by_asset_id(asset_id,{
         media_metadata: true
     })   
@@ -35,12 +37,12 @@ async function getDuration(asset_id){
 //funcion experimental para añadir la duracion a un video que acabamos de crear
 async function addDuration(asset_id){
     var longitud_video;
-    const duration = await getDuration(result.asset_id)
+    const duration = await getMetadata(result.asset_id)
     longitud_video=duration.video_metadata.format_duration
     return longitud_video
 
 }
 //exportamos las funciones
 module.exports = {
-    uploadData: uploadData, getDuration:getDuration, deleteFile:deleteFile, addDuration:addDuration
+    uploadData, getMetadata, deleteFile, addDuration
 };

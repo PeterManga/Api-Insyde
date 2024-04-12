@@ -1,14 +1,13 @@
 //importamos los módulos necesarios.
 const express = require('express');
 const router = express.Router();
-const fileController = require('../controller/video.controller')
+const fileController = require('../controller/file.controller')
   
 //definimos las rutas
 
 //rutas get
 router.get('/files',fileController.getFiles);
 router.get('/file/:id',fileController.getFile);
-
 router.get('/fileMetadatos/:id', fileController.getMetadatos)
 
 //rutas post (Crear)
