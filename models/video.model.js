@@ -21,9 +21,10 @@ const fileSchema = moongose.Schema({
         url: String,
         resource_type: String,
         format: String,
+        asset_id: String,
         width: String,
         height: String,
-        duracion: String
+        duracion: Number
     }
 }, {
     timestamps: true
