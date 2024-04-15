@@ -18,8 +18,7 @@ const fileSchema = moongose.Schema({
     datos: {
         public_id: String,
         url: String,
-        //tipo de recurso video/imagen/etc
-        resource_type: String,
+        resource_type: String,  //tipo de recurso video/imagen/etc
         format: String,
         asset_id: String,
         width: String,

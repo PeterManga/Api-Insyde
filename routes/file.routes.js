@@ -9,6 +9,7 @@ const fileController = require('../controller/file.controller')
 router.get('/files',fileController.getFiles);
 router.get('/file/:id',fileController.getFile);
 router.get('/fileMetadatos/:id', fileController.getMetadatos)
+router.get('/getPlaylist', fileController.getPlaylist);
 
 //rutas post (Crear)
 router.post('/file', fileController.createFile);

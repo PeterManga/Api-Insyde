@@ -2,6 +2,7 @@
 const fs = require('fs');
 const https = require('https');
 const axios = require('axios');
+const archiver = require('archiver')
 
 //url y puerto del servidor
 const baseUrl = 'http://localhost:3000/';
@@ -17,8 +18,8 @@ async function getFiles(ubicacion) {
 // esta función se encarga de mandar cada objeto 
 // recuperado a de la api para que su respectivo video sea descargado
 // usando la funcion fileDownloader
-async function playListDownloader() {
-    const datos = await getFiles('gandia');
+async function playListDownloader(ubicacion) {
+    const datos = await getFiles(ubicacion);
     for (const element of datos) {
         const url = element.datos.url;
         const nombre = element.nombre;
@@ -32,6 +33,10 @@ async function playListDownloader() {
         } catch (err) {
             console.error('El archivo no existe');
             await fileDowloader(extension, url, nombre);
+           //Crear un objeto Archiver
+            const zip = archiver('zip')
+            //configurar la respuesta http para que el navegador descargue el archivo
+            
         }
     }
     console.log('Descargas finalizadas');

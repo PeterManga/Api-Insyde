@@ -2,12 +2,14 @@
 const fileModel = require('../models/file.model.js');
 const cloudinary = require('../utils/cloudinary.js');
 const fsExtra = require('fs-extra')
+const archiver = require('archiver')
+const axios = require('axios');
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
 const getFiles = async (req, res) => {
 
     try {
-        //El parametro re.query devuelve los objetos que coinciden 
+        //El parametro req.query devuelve los objetos que coinciden 
         //con los parametros solicitados por el usuario
         const file = await fileModel.find(req.query);
         res.json(file);
@@ -35,7 +37,7 @@ const getFile = async (req, res) => {
     }
 }
 
-//metodo para obtener los metadatos de un video (experimental y así obtener la duración de este)
+//metodo para obtener los metadatos de un archivo y así obtener la duración y otros datos
 const getMetadatos = async (req, res) => {
     try {
         const metadatosVideo = await cloudinary.getMetadata(req.params.id)
@@ -46,7 +48,7 @@ const getMetadatos = async (req, res) => {
     }
 }
 
-// Este método nos permite crear de un nuevo  objeto video y añadirlo a la base de datos
+// Este método nos permite crear de un nuevo  objeto del modelo y añadirlo a la base de datos
 const createFile = async (req, res) => {
 
     try {
@@ -101,13 +103,14 @@ const createFile = async (req, res) => {
                 }
                 //recogemos los datos del video subido y se los añadimos al modelo
                 nuevoFile.datos = {
+                    //Añadimos los siguientes campos, sus valores son obtenidos gracias a los metadatos
                     public_id: result.public_id,
                     url: result.secure_url,
                     format: result.format,
                     width: result.width,
                     height: result.height,
                     asset_id: result.asset_id,
-                    resource_type: result.resource_type, //Asigamos el campo 'duracion' obtenido de los metadatos
+                    resource_type: result.resource_type, 
                     duracion: duracion
                 }
 
@@ -130,7 +133,8 @@ const createFile = async (req, res) => {
 
 }
 
-//Este método nos permite actualizar la información de un video alojado en la base de datos
+//Este método nos permite actualizar la información de un objeto de mongo db y al mismo tiempo,
+//actualizar el fichero al que se encuntra vinculado en cloudinary
 const updateFile = async (req, res) => {
     try {
         //usamos el id proporcionado en la url 
@@ -190,7 +194,7 @@ const updateFile = async (req, res) => {
     }
 }
 
-//Este método nos permite borrar un video con el id especificado en la url
+//Este método nos permite borrar un archivo con el id especificado en la url tanto en mongodb como en cloudinary
 const deleteData = async (req, res) => {
 
     try {
@@ -217,5 +221,36 @@ const deleteData = async (req, res) => {
     }
 }
 
+//este método descarga todos los videos que pertenezcana la ubicación indicada
+const getPlaylist = async (req, res) => {
+    // Crear un objeto Archiver para el archivo ZIP
+    const zip = archiver('zip', {
+        zlib: { level: 9 } // Nivel de compresión
+    });
+    // Configurar la respuesta HTTP para que el navegador descargue el archivo ZIP
+    res.attachment('playlist.zip');
+    zip.pipe(res);
+    
+    try {
+        //El parametro req.query devuelve los objetos que coinciden 
+        //con los parametros solicitados por el usuario
+        
+        const file = await fileModel.find(req.query);
+        for (const files of file) {
+            const url = files.datos.url;
+            const nombre = files.nombre;
+            const extension = files.datos.format;
+            const response = await axios.get(url, { responseType: 'stream' });
+            const nombreArchivo = `${nombre}.${extension}`;
+            zip.append(response.data, { name: nombreArchivo });
+        }
+        // Finalizar el archivo ZIP y enviarlo
+        zip.finalize();
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+}
 
-module.exports = { getFile, updateFile, deleteData, createFile, getFiles, getMetadatos }
+
+module.exports = { getFile, updateFile, deleteData, createFile, getFiles, getMetadatos, getPlaylist }

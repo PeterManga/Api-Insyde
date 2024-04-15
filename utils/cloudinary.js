@@ -27,7 +27,7 @@ async function deleteFile(public_id, type){
     
 }
 
-// Funcion para obtener la duración de un video
+// Funcion para obtener los metadatos de un archivo
 async function getMetadata(asset_id){
     return await cloudinary.api.resource_by_asset_id(asset_id,{
         media_metadata: true
@@ -40,7 +40,6 @@ async function addDuration(asset_id){
     const duration = await getMetadata(result.asset_id)
     longitud_video=duration.video_metadata.format_duration
     return longitud_video
-
 }
 //exportamos las funciones
 module.exports = {
