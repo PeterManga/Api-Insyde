@@ -22,7 +22,7 @@ app.use(fileUpload({
 }));
 
 //usamos las rutas definidas en otros archivos
-app.use(indexRoutes)
+//app.use(indexRoutes)
 app.use(videoRoutes)
 
 

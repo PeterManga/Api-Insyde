@@ -25,6 +25,10 @@ const fileSchema = moongose.Schema({
         height: String,
         //Este campo será util a la hora de crear una playlist para los videos
         duracion: Number
+    },
+    playlist: {
+        type: moongose.Schema.Types.ObjectId,
+        ref: 'playlist.model'
     }
 }, {
     //Este campo añade la fecha de creación y la fecha de actualizacion

@@ -24,12 +24,15 @@ const getFiles = async (req, res) => {
 const getFile = async (req, res) => {
 
     try {
+        //recogemos el id proporcionado por el usuario
         const findFile = await fileModel.findOne({ _id: req.params.id });
+        //si no encontramos datos relacionados con el id mostramos el siguiente mensaje
         if (!findFile) {
             res.status(404).json({
                 message: 'El video no existe'
             })
         }
+        //Si todo sale bien mostramos los datos en la respuesta
         res.send(findFile)
     } catch (error) {
         console.error(error);
@@ -96,10 +99,11 @@ const createFile = async (req, res) => {
                 //Obtenemos los metadatos
                 const metadatosVideo = await cloudinary.getMetadata(assetID)
                 let duracion;
+                //Determinamos el tipo de archivo e indicamos la duración
                 if (type === 'video') {
                     duracion = metadatosVideo.video_metadata.format_duration
                 } else {
-                    duracion = 0
+                    duracion = 15
                 }
                 //recogemos los datos del video subido y se los añadimos al modelo
                 nuevoFile.datos = {
@@ -110,7 +114,7 @@ const createFile = async (req, res) => {
                     width: result.width,
                     height: result.height,
                     asset_id: result.asset_id,
-                    resource_type: result.resource_type, 
+                    resource_type: result.resource_type,
                     duracion: duracion
                 }
 
@@ -223,29 +227,38 @@ const deleteData = async (req, res) => {
 
 //este método descarga todos los videos que pertenezcana la ubicación indicada
 const getPlaylist = async (req, res) => {
-    // Crear un objeto Archiver para el archivo ZIP
-    const zip = archiver('zip', {
-        zlib: { level: 9 } // Nivel de compresión
-    });
-    // Configurar la respuesta HTTP para que el navegador descargue el archivo ZIP
-    res.attachment('playlist.zip');
-    zip.pipe(res);
-    
+
     try {
         //El parametro req.query devuelve los objetos que coinciden 
         //con los parametros solicitados por el usuario
-        
-        const file = await fileModel.find(req.query);
-        for (const files of file) {
-            const url = files.datos.url;
-            const nombre = files.nombre;
-            const extension = files.datos.format;
-            const response = await axios.get(url, { responseType: 'stream' });
-            const nombreArchivo = `${nombre}.${extension}`;
-            zip.append(response.data, { name: nombreArchivo });
+        let ubicacion = req.query.ubicacion
+        let lowerUbicacion = ubicacion.toLowerCase()
+
+        const file = await fileModel.find({ ubicacion: lowerUbicacion });
+        if (file.length >= 1) {
+            // Crear un objeto Archiver para el archivo ZIP
+            const zip = archiver('zip', {
+                zlib: { level: 9 } // Nivel de compresión
+            });
+            // Configurar la respuesta HTTP para que el navegador descargue el archivo ZIP
+            res.attachment('playlist.zip');
+            zip.pipe(res);
+            for (const files of file) {
+                const url = files.datos.url;
+                const nombre = files.nombre;
+                const extension = files.datos.format;
+                //usamos axios para realizar peticiones a las urls
+                const response = await axios.get(url, { responseType: 'stream' });
+                const nombreArchivo = `${nombre}.${extension}`;
+                zip.append(response.data, { name: nombreArchivo });
+            }
+            // Finalizar el archivo ZIP y enviarlo
+            zip.finalize();
+
+        } else {
+            return res.status(300).send('No se han encontrado archivos')
         }
-        // Finalizar el archivo ZIP y enviarlo
-        zip.finalize();
+
     } catch (error) {
         console.log(error);
         res.status(500).send(error);
