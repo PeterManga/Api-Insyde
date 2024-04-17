@@ -9,8 +9,6 @@ const CreatePlayer = async (req, res) =>{
         descripcion = req.body.descripcion ,
         etiquetas = req.body.etiquetas,
         playlistActual = req.body.playlistActual
-        let ultimaPlaylist = req.body.ultimaPlaylist
-        let calendarioPlaylist = req.body.calendarioPlaylist  
 
         //corregir parseo de valores
         //parseamos los valores
@@ -22,10 +20,7 @@ const CreatePlayer = async (req, res) =>{
             descripcion: descripcion,
             etiquetas: req.body.etiquetas,
             playlistActual: req.body.playlistActual,
-            ultimaPlaylist: req.body.ultimaPlaylist,
-            calendarioPlaylist: req.body.calendarioPlaylist
         })
-        console.log(nuevaPlaylist)
 
         //guardamos los datos y los subimos a mongodb
         await nuevaPlaylist.save();
@@ -34,7 +29,6 @@ const CreatePlayer = async (req, res) =>{
     } catch (error) {
         console.error(error)
         res.status(500).send({message: 'No se creado el player correctamente'})
-        
     }
 }
 

@@ -16,19 +16,11 @@ const playerSchema = mongoose.Schema({
     playlistActual:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'playlist.model'
-    },
-    ultimaPlaylist:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'playlist.model'
-    },
-    calendarioPlaylist: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'playlist.model'
-    }]
+    }
     
 },{
     //Este campo añade la fecha de creación y la fecha de actualizacion
-    timestamps: true
+    timestamps: true    
 })
 // Asociación con el modelo
 let Player = mongoose.model('player', playerSchema);

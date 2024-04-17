@@ -62,10 +62,19 @@ const createFile = async (req, res) => {
         else {
             //recogemos los datos y los asignamos al modelo
             //Corregir: El toLowerCase en caso que el usuario no ponga alguno de los campos
+            let nombre = req.body.nombre
+            let descripcion = req.body.descripcion
+            let ubicacion = req.body.ubicacion
+
+            //parseamos los datos recogidos
+            nombre == undefined ? nombre = null : nombre=nombre.toLowerCase();
+            descripcion == undefined ? descripcion = null : nombre=nombre.toLowerCase();
+            ubicacion == undefined ? descripcion = null : descripcion=descripcion.toLowerCase();
+            
             const nuevoFile = new fileModel({
-                nombre: req.body.nombre.toLowerCase(),
-                descripcion: req.body.descripcion.toLowerCase(),
-                ubicacion: req.body.ubicacion.toLowerCase()
+                nombre: nombre,
+                descripcion: descripcion,
+                ubicacion: ubicacion
             });
 
             //Comprobamos que el usuario ingresa el archivo en el campo "archivo" 

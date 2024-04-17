@@ -4,7 +4,8 @@
 
  playlistSchema = mongoose.Schema({
     nombre: {
-        type: String
+        type: String,
+        required: true
     },
     duracion: {
         type: Number
