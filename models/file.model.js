@@ -1,10 +1,11 @@
 //importacion de módulos
-const moongose = require('mongoose');
+const mongoose = require('mongoose');
 
 // Definición del esquema
-const fileSchema = moongose.Schema({
+const fileSchema = mongoose.Schema({
     nombre: {
-        type: String
+        type: String,
+        required: true
     },
     descripcion: {
         type: String,
@@ -26,17 +27,17 @@ const fileSchema = moongose.Schema({
         //Este campo será util a la hora de crear una playlist para los videos
         duracion: Number
     },
-    playlist: {
-        type: moongose.Schema.Types.ObjectId,
+    playlist: [{
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'playlist.model'
-    }
+    }]
 }, {
     //Este campo añade la fecha de creación y la fecha de actualizacion
     timestamps: true
 })
 
 // Asociación con el modelo
-let File = moongose.model('file', fileSchema);
+let File = mongoose.model('file', fileSchema);
 
 //exportamos
 module.exports = File

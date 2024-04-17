@@ -1,17 +1,20 @@
 
  //importación de módulos
- const moongose = require('mongoose');
+ const mongoose = require('mongoose');
 
- playlistSchema = moongose.Schema({
+ playlistSchema = mongoose.Schema({
     nombre: {
         type: String
     },
     duracion: {
         type: Number
     },
-    archivos: {
-        type: moongose.Schema.Types.ObjectId,
-        ref: 'file.model'
+    archivos: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'file.model.js'
+    }],
+    descripcion:{
+        type: String
     }
  },{
      //Este campo añade la fecha de creación y la fecha de actualizacion
@@ -19,7 +22,7 @@
  })
 
  // Asociación con el modelo
-let Playlist = moongose.model('playlist', playlistSchema);
+let Playlist = mongoose.model('playlist', playlistSchema);
 
 //exportamos
 module.exports = Playlist

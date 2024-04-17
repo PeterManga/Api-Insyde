@@ -1,20 +1,37 @@
 //importacion de módulos
-const moongose = require('mongoose');
+const mongoose = require('mongoose');
 
-const playerSchema = moongose.Shema({
-    id: {
+const playerSchema = mongoose.Schema({
+
+    nombre: {
+        type: String,
+        required: true
+    },
+    descripcion: {
         type: String
     },
-    nombre: {
+    etiquetas: [{
         type: String
-    }
+    }],
+    playlistActual:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'playlist.model'
+    },
+    ultimaPlaylist:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'playlist.model'
+    },
+    calendarioPlaylist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'playlist.model'
+    }]
     
 },{
     //Este campo añade la fecha de creación y la fecha de actualizacion
     timestamps: true
 })
 // Asociación con el modelo
-let Player = moongose.model('player', playerSchema);
+let Player = mongoose.model('player', playerSchema);
 
 //exportamos
 module.exports = Player

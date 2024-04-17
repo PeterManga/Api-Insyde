@@ -6,10 +6,6 @@ const fileController = require('../controller/file.controller')
 //definimos las rutas
 
 //rutas get
-router.get('/', (req, res)=>{ //ruta raiz
-    res.send('Tenemos la aplicacion conectada a la base de datos de monog db atlas');
-});
-//
 router.get('/files',fileController.getFiles); //Obtener
 router.get('/file/:id',fileController.getFile);
 router.get('/fileMetadatos/:id', fileController.getMetadatos)

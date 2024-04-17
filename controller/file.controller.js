@@ -11,7 +11,7 @@ const getFiles = async (req, res) => {
     try {
         //El parametro req.query devuelve los objetos que coinciden 
         //con los parametros solicitados por el usuario
-        const file = await fileModel.find(req.query);
+        const file = await fileModel.find();
         res.json(file);
     } catch (error) {
         console.log(error);
@@ -61,6 +61,7 @@ const createFile = async (req, res) => {
         }
         else {
             //recogemos los datos y los asignamos al modelo
+            //Corregir: El toLowerCase en caso que el usuario no ponga alguno de los campos
             const nuevoFile = new fileModel({
                 nombre: req.body.nombre.toLowerCase(),
                 descripcion: req.body.descripcion.toLowerCase(),
