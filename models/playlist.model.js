@@ -12,7 +12,7 @@
     },
     archivos: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'file.model.js'
+        ref: 'file.model'
     }],
     descripcion:{
         type: String
