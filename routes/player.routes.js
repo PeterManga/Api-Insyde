@@ -5,11 +5,16 @@ const playerController = require('../controller/player.controller')
 //definimos las rutas
 
 //rutas get
-//router.get('/player', playerController)
+router.get('/players', playerController.getPlayers)
+router.get('/player/:id', playerController.getPlayer)
 
-//rutas post
+//rutas post (crear)
 router.post('/player', playerController.CreatePlayer);
 
+//rutas delete (eliminar)
+router.delete('/player/:id', playerController.deletePlayer)
 
+//rutas put (update)
+router.put('/player/:id',playerController.updatePlayer)
 //exportamos
 module.exports = router

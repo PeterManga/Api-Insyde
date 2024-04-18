@@ -52,6 +52,10 @@ const getMetadatos = async (req, res) => {
 }
 
 // Este método nos permite crear de un nuevo  objeto del modelo y añadirlo a la base de datos
+/*corregir: Al crear un archivo y hacer que este pertenezca a una playlist, 
+tenemos que actualizar la duración de la playlist y el valor del array de archivos que contiene, 
+añadiendo el nuevo archivo
+*/
 const createFile = async (req, res) => {
 
     try {
@@ -149,6 +153,8 @@ const createFile = async (req, res) => {
 
 //Este método nos permite actualizar la información de un objeto de mongo db y al mismo tiempo,
 //actualizar el fichero al que se encuntra vinculado en cloudinary
+//corregir, eliminar que pueda sustituir el archivo por otro, es mejor que crée un archivo nuevo a modificar uno que ya esté subido
+
 const updateFile = async (req, res) => {
     try {
         //usamos el id proporcionado en la url 
@@ -209,6 +215,8 @@ const updateFile = async (req, res) => {
 }
 
 //Este método nos permite borrar un archivo con el id especificado en la url tanto en mongodb como en cloudinary
+/* Corregir:  Tenemos eliminar el archivo de todas las playlist en las que se encuentre y reducir el valoir del campo "duracion"
+de la playlist*/
 const deleteData = async (req, res) => {
 
     try {

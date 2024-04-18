@@ -9,9 +9,11 @@ router.get('/playlist/:id',playListController.getPlaylist)
 
 //rutas post
 router.post('/playlist', playListController.createPlaylist )
+
 //rutas delete
 router.delete('/playlist/:id',playListController.deletePlaylist)
 
-
+//rutas put (update)
+router.put('/playlist/:id', playListController.updatePlaylist)
 //exportamos
 module.exports = router

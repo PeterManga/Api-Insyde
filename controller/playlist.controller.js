@@ -1,12 +1,11 @@
 //Importación de módulos necesarios
 const playlistModel = require('../models/playlist.model')
 const fileModel = require('../models/file.model');
-const { reset } = require('nodemon');
 
 const getPlaylists = async (req, res) => {
     try {
-        const playlist = await playlistModel.find();
-        res.json(playlist)
+        const result = await playlistModel.find();
+        res.json(result)
     } catch (error) {
         console.error(error)
     }
@@ -14,8 +13,8 @@ const getPlaylists = async (req, res) => {
 const getPlaylist = async (req, res) => {
     try {
         let id = req.params.id;
-        let playlist = await playlistModel.findOne({ _id: id })
-        return res.send(playlist)
+        let result = await playlistModel.findOne({ _id: id })
+        return res.send(result)
     } catch (error) {
         console.error(error)
         res.status(500).send(error)
@@ -50,24 +49,31 @@ const createPlaylist = async (req, res) => {
             archivos = archivos.split(','); // Convertir la cadena de texto en un array
             try {
                 //recogemos los datos de la duración de cada archivo
+                //corregir: Comprobar que id proporcionado por el usuario existe en la base de datos
+                // y si no existe, eliminaremos el id indicado del
                 for (const archivo of archivos) {
-                    const result = await fileModel.findOne({ _id: archivo });
-                    duracion += result.datos.duracion
+                    try {
+                        const result = await fileModel.findOne({ _id: archivo });
+                        duracion += result.datos.duracion
+                    } catch (error) {
+                        console.error(error)
+                        res.status(500).send(error)
+                    }
                 }
             } catch (error) {
                 console.error(error)
             }
         }
 
-        const nuevaPlaylist = new playlistModel({
+        const result = new playlistModel({
             nombre: nombre,
             archivos: archivos,
             descripcion: descripcion,
             duracion: duracion
         })
 
-        await nuevaPlaylist.save();
-        return res.status(201).json(nuevaPlaylist);
+        await result.save();
+        return res.status(201).json(result);
     } catch (error) {
         console.error(error)
         res.status(500).send({ error })
@@ -75,6 +81,25 @@ const createPlaylist = async (req, res) => {
 
 }
 
+// método para actualizar los datos de una playlist
+//corregir: hay que obtener la duracion total de la playlist antes de añadirle el nuevo archivo o eliminarlo de la playlist
+const updatePlaylist = async (req, res) => {
+    let filter = { _id: req.params.id}
+    let nombre, duracion, archivos, descripcion
+    let update = {
+
+    }
+    try {
+        const result = await playlistModel.findOneAndUpate( filter, update, {
+            new: true
+        })
+        res.send(result)
+        
+    } catch (error) {
+        console.error(error)
+        res.status(500).send(error)
+    }
+}
 
 
-module.exports = { createPlaylist, getPlaylists, getPlaylist, deletePlaylist}
+module.exports = { createPlaylist, getPlaylists, getPlaylist, deletePlaylist, updatePlaylist}
