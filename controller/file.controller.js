@@ -256,11 +256,12 @@ const updateFile = async (req, res) => {
 //Este método nos permite borrar un archivo con el id especificado en la url tanto en mongodb como en cloudinary
 /* Corregir:  Tenemos eliminar el archivo de todas las playlist en las que se encuentre y reducir el valoir del campo "duracion"
 de la playlist*/
-const deleteData = async (req, res) => {
+const deleteFile = async (req, res) => {
 
     try {
         //Busca el archivo con id proporcionado en la base de datos y este es borrado
         const File = await fileModel.findOneAndDelete({ _id: req.params.id });
+        let filePlaylists = File.playlist
 
         //Si el archivo, no existe, se mostrará el siguiente error
         if (!File) return res.status(404).json({
@@ -273,6 +274,16 @@ const deleteData = async (req, res) => {
         //Se elimina de cloudinary el archivo asociado al objeto eliminado de mongo
         await cloudinary.deleteFile(File.datos.public_id, type)
 
+        //Eliminamos el archivo de la playlist y restamos la duración
+        for (const playlist of filePlaylists) {
+            await playlistModel.findOneAndUpdate(
+                { _id:  playlist},
+                {
+                    $pull: { archivos: File._id },
+                    $inc: { duracion: -File.datos.duracion } // restamos la duración del archivo al campo duracion
+                }
+            );
+        }
         // mostramos los datos eliminados al finalizar todas las operaciones      
         return res.send(File)
 
@@ -323,4 +334,4 @@ const getPlaylist = async (req, res) => {
 }
 
 
-module.exports = { getFile, updateFile, deleteData, createFile, getFiles, getMetadatos, getPlaylist }
+module.exports = { getFile, updateFile, deleteFile, createFile, getFiles, getMetadatos, getPlaylist }
