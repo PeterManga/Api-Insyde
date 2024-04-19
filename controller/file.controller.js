@@ -1,6 +1,7 @@
 //modulos necesarios
 const fileModel = require('../models/file.model.js');
 const cloudinary = require('../utils/cloudinary.js');
+const playlistModel = require('../models/playlist.model.js')
 const fsExtra = require('fs-extra')
 const archiver = require('archiver')
 const axios = require('axios');
@@ -69,12 +70,14 @@ const createFile = async (req, res) => {
             let nombre = req.body.nombre
             let descripcion = req.body.descripcion
             let ubicacion = req.body.ubicacion
+            let playlists = req.body.playlist
+            let arrayPlaylist = []
 
             //parseamos los datos recogidos
-            nombre == undefined ? nombre = null : nombre=nombre.toLowerCase();
-            descripcion == undefined ? descripcion = null : nombre=nombre.toLowerCase();
-            ubicacion == undefined ? descripcion = null : descripcion=descripcion.toLowerCase();
-            
+            nombre == undefined ? nombre = null : nombre = nombre.toLowerCase();
+            descripcion == undefined ? descripcion = null : nombre = nombre.toLowerCase();
+            ubicacion == undefined ? descripcion = null : descripcion = descripcion.toLowerCase();
+
             const nuevoFile = new fileModel({
                 nombre: nombre,
                 descripcion: descripcion,
@@ -131,7 +134,41 @@ const createFile = async (req, res) => {
                     resource_type: result.resource_type,
                     duracion: duracion
                 }
+                //Funcion nueva para guardar la duración del archivo en la playlist
+                if (playlists == undefined | playlists == '') {
+                    // playlists=null
+                    // nuevoFile.playlist = {
+                    //     playlists
+                    // }
+                } else {
+                    playlists = playlists.split(','); // Convertir la cadena de texto en un array
+                    try {
+                        //recogemos los datos de la duración de cada archivo
+                        for (const playlist of playlists) {
+                            if (!arrayPlaylist.includes(playlist)) {
+                                try {
+                                    const query = await playlistModel.findOneAndUpdate(
+                                        { _id: playlist },
+                                        {
+                                            $push: { archivos: nuevoFile._id },
+                                            $inc: { duracion: nuevoFile.datos.duracion } // Sumamos la duración del archivo al campo duracion
+                                        }
+                                    );
+                                    if (query) {
+                                        arrayPlaylist.push(playlist)
+                                        nuevoFile.playlist = query._id
+                                    }
 
+                                } catch (error) {
+                                    console.error(error)
+                                    res.status(500).send(error)
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error(error)
+                    }
+                }
             }
             else {
                 //si el archivo introducido no se encuentra en el campo 'archivo' o no se introduce ninguno
@@ -139,6 +176,8 @@ const createFile = async (req, res) => {
             }
 
             //asignamos los datos recogidos al nuevo video y esperamos a que se guarden los datos
+
+            console.log(arrayPlaylist)
             await nuevoFile.save();
             //si todo está bien, nos devuelve los datos subidos
             return res.status(201).json(nuevoFile);
