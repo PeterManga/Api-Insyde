@@ -22,39 +22,44 @@ const getPlaylist = async (req, res) => {
 
 }
 
-const deletePlaylist = async (req, res)=>{
+const deletePlaylist = async (req, res) => {
     try {
         let id = req.params.id
-        let result = await playlistModel.findOneAndDelete({_id: id})
+        let result = await playlistModel.findOneAndDelete({ _id: id })
         res.send(result)
-        
+
     } catch (error) {
         console.error(error)
-        res.status(500).send(error)        
+        res.status(500).send(error)
     }
 }
 const createPlaylist = async (req, res) => {
     try {
         let nombre = req.body.nombre
-        let duracion = 0;
+        let duracion = req.body.duracion;
         let archivos = req.body.archivos
+        let arrayArchivos = []
         let descripcion = req.body.descripcion
-        //Parseamos los valores
-        nombre == undefined ? null : nombre = nombre.toLowerCase();
-        descripcion == undefined ? null : descripcion = descripcion.toLowerCase();
-        if (archivos == undefined | archivos == '') {
-            archivos = null
+
+
+        if (duracion.trim()==0 | duracion==undefined) {
+            duracion = 0
         }
-        else {
+        //Parseamos los valores
+        nombre == nombre.trim() == 0 ? nombre = undefined : nombre = nombre.toLowerCase();
+        descripcion == descripcion.trim() == 0 ? descripcion = undefined : descripcion = descripcion.toLowerCase();
+        if (archivos !== undefined) {
             archivos = archivos.split(','); // Convertir la cadena de texto en un array
             try {
                 //recogemos los datos de la duración de cada archivo
-                //corregir: Comprobar que id proporcionado por el usuario existe en la base de datos
-                // y si no existe, eliminaremos el id indicado del
+                //y guardamos el array id del array si es que existe
                 for (const archivo of archivos) {
                     try {
                         const result = await fileModel.findOne({ _id: archivo });
-                        duracion += result.datos.duracion
+                        if (result) {
+                            duracion += result.datos.duracion
+                            arrayArchivos.push(archivo)
+                        }
                     } catch (error) {
                         console.error(error)
                         res.status(500).send(error)
@@ -65,9 +70,10 @@ const createPlaylist = async (req, res) => {
             }
         }
 
+
         const result = new playlistModel({
             nombre: nombre,
-            archivos: archivos,
+            archivos: arrayArchivos,
             descripcion: descripcion,
             duracion: duracion
         })
@@ -84,17 +90,23 @@ const createPlaylist = async (req, res) => {
 // método para actualizar los datos de una playlist
 //corregir: hay que obtener la duracion total de la playlist antes de añadirle el nuevo archivo o eliminarlo de la playlist
 const updatePlaylist = async (req, res) => {
-    let filter = { _id: req.params.id}
-    let nombre, duracion, archivos, descripcion
+    let filter = { _id: req.params.id }
+    let nombre = req.body.nombre
+    let duracion = req.body.duracion;
+    let archivos = req.body.archivos
+    let addArchivo = req.body.add
+    // corregir: como puedo saber si el id de archivo que ha proporcionado nos va a servir para eliminar o añadir un archivo a la playlist
     let update = {
-
+        nombre: nombre,
+        duracion: duracion,
+        
     }
     try {
-        const result = await playlistModel.findOneAndUpate( filter, update, {
+        const result = await playlistModel.findOneAndUpate(filter, update, {
             new: true
         })
         res.send(result)
-        
+
     } catch (error) {
         console.error(error)
         res.status(500).send(error)
@@ -102,4 +114,4 @@ const updatePlaylist = async (req, res) => {
 }
 
 
-module.exports = { createPlaylist, getPlaylists, getPlaylist, deletePlaylist, updatePlaylist}
+module.exports = { createPlaylist, getPlaylists, getPlaylist, deletePlaylist, updatePlaylist }

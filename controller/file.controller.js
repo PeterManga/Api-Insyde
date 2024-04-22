@@ -53,10 +53,7 @@ const getMetadatos = async (req, res) => {
 }
 
 // Este método nos permite crear de un nuevo  objeto del modelo y añadirlo a la base de datos
-/*corregir: Al crear un archivo y hacer que este pertenezca a una playlist, 
-tenemos que actualizar la duración de la playlist y el valor del array de archivos que contiene, 
-añadiendo el nuevo archivo
-*/
+
 const createFile = async (req, res) => {
 
     try {
@@ -198,48 +195,30 @@ const updateFile = async (req, res) => {
     try {
         //usamos el id proporcionado en la url 
         const filter = { _id: req.params.id }
-        let actualizarFile;
-        //buscamos en la base de datos la informacion relacionada con el id proporcionado
-        const findFile = await fileModel.findOne({ _id: req.params.id });
+        let nombre = req.body.nombre
+        let descripcion = req.body.descripcion
+        let ubicacion = req.body.ubicacion
+        let playlists = req.body.playlist
+        let arrayPlaylist = []
 
+        //parseamos los datos recogidos
+        nombre == undefined ? nombre = null : nombre = nombre.toLowerCase();
+        descripcion == undefined ? descripcion = '' : nombre = nombre.toLowerCase();
+        ubicacion == undefined ? descripcion = '' : descripcion = descripcion.toLowerCase();
+
+        let update = {
+            nombre: nombre,
+            descripcion: descripcion,
+            ubicacion: ubicacion
+
+        }
         //Detectamos si el usuario está intentando sustituir el archivo 
         //vinculado a los datos proporcionados por otro nuevo
-        if (req.files?.archivo) {
-            let type = findFile.datos.resource_type;
 
-            //Se elimina de cloudinary el archivo antiguo asociado al objeto que vamos a actualizar de mongo
-            await cloudinary.deleteFile(findFile.datos.public_id, type)
+       const actualizarFile = await fileModel.findOneAndUpdate(filter, update, {
+            new: true
+        });
 
-            /*El video introducido es detectado en los archivos temporales
-            y esperamos a que sea subido a cloudinary*/
-            const result = await cloudinary.uploadData(req.files.archivo.tempFilePath, type)
-
-            //Obtenemos los metadatos
-            const metadatosVideo = await cloudinary.getMetadata(result.asset_id)
-
-            //bucamos en la base de datos el objeto que coincide con la id proporcionada
-            // y lo actualizamos
-            const datosFile = req.body;
-            datosFile.datos = {
-                public_id: result.public_id,
-                url: result.secure_url,
-                format: result.format,
-                width: result.width,
-                height: result.height,
-                //Asigamos el campo 'duracion' obtenido de los metadatos
-                duracion: metadatosVideo.video_metadata.format_duration
-            }
-            actualizarFile = await fileModel.findOneAndUpdate(filter, datosFile, {
-                new: true
-            });
-
-        }
-
-        else {
-            actualizarFile = await fileModel.findOneAndUpdate(filter, req.body, {
-                new: true
-            });
-        }
         if (!actualizarFile) {
             return res.status(404).json({
                 message: 'Los datos no son correctos'
@@ -277,7 +256,7 @@ const deleteFile = async (req, res) => {
         //Eliminamos el archivo de la playlist y restamos la duración
         for (const playlist of filePlaylists) {
             await playlistModel.findOneAndUpdate(
-                { _id:  playlist},
+                { _id: playlist },
                 {
                     $pull: { archivos: File._id },
                     $inc: { duracion: -File.datos.duracion } // restamos la duración del archivo al campo duracion

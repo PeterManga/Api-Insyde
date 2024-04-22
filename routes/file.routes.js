@@ -18,7 +18,7 @@ router.post('/file', fileController.createFile);
 router.put('/file/:id', fileController.updateFile);
 
 //rutas delete (Eliminar)
-router.delete('/file/:id', fileController.deleteData);
+router.delete('/file/:id', fileController.deleteFile);
 
 
 //exportamos
