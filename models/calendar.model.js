@@ -17,7 +17,7 @@
     },
     fechaFin: {
         type: Date
-    },
+    }
    
     
  },{

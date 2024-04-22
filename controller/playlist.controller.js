@@ -2,7 +2,7 @@
 const playlistModel = require('../models/playlist.model')
 const fileModel = require('../models/file.model');
 
-const getPlaylists = async (req, res) => {
+const getAllPlaylist = async (req, res) => {
     try {
         const result = await playlistModel.find();
         res.json(result)
@@ -41,7 +41,8 @@ const createPlaylist = async (req, res) => {
         let arrayArchivos = []
         let descripcion = req.body.descripcion
 
-
+        //Comprobamos sí el usuario ha introducido l aduración manualmente, en el caso de ser un video
+        //No se tendrá en cuenta el campo "duración"
         if (duracion.trim()==0 | duracion==undefined) {
             duracion = 0
         }
@@ -70,14 +71,14 @@ const createPlaylist = async (req, res) => {
             }
         }
 
-
+        //asignamos a result los valore sobtenidos
         const result = new playlistModel({
             nombre: nombre,
             archivos: arrayArchivos,
             descripcion: descripcion,
             duracion: duracion
         })
-
+        //Esperamos a que se guarde la playlist y mostramos los resultados
         await result.save();
         return res.status(201).json(result);
     } catch (error) {
@@ -92,17 +93,59 @@ const createPlaylist = async (req, res) => {
 const updatePlaylist = async (req, res) => {
     let filter = { _id: req.params.id }
     let nombre = req.body.nombre
-    let duracion = req.body.duracion;
+    let descripcion = req.body.descripcion
     let archivos = req.body.archivos
-    let addArchivo = req.body.add
+    let deleteArchivo = req.body.delete
+    let update
+    let arrayArchivos = []
+    let duracionArchivos = 0
     // corregir: como puedo saber si el id de archivo que ha proporcionado nos va a servir para eliminar o añadir un archivo a la playlist
-    let update = {
-        nombre: nombre,
-        duracion: duracion,
-        
+    if (archivos !== undefined) {
+        archivos = archivos.split(','); // Convertir la cadena de texto en un array
+        try {
+            //recogemos los datos de la duración de cada archivo
+            //y guardamos el array id del array si es que existe
+            for (const archivo of archivos) {
+                try {
+                    const result = await fileModel.findOne({ _id: archivo });
+                    if (result) {
+                        duracionArchivos += result.datos.duracion
+                        arrayArchivos.push(result._id)
+                    }
+                } catch (error) {
+                    console.error(error)
+                    res.status(500).send(error)
+                }
+            }
+        } catch (error) {
+            console.error(error)
+        }
     }
+
+ //Sí el campo deleteArchivo existe, se eliminará el id del archivo en toda la playlist y se descontará el valor de la duración de cada archivo
+    if (deleteArchivo) {
+        update = {
+            nombre: nombre,
+            descripcion: descripcion,
+            $pull: { archivos: {$in: arrayArchivos} },
+            $inc: { duracion: - duracionArchivos }
+    
+        }
+    }
+    // en caso contrario, se añadirá el id del archivo a nuestra playlist y se sumará la duración de los archivos a la de nuestra playlist
+    else{
+        update = {
+            nombre: nombre,
+            descripcion: descripcion,
+            $push: { archivos: arrayArchivos },
+            $inc: { duracion: duracionArchivos }
+    
+        }
+    }
+
+     
     try {
-        const result = await playlistModel.findOneAndUpate(filter, update, {
+        const result = await playlistModel.findOneAndUpdate(filter, update, {
             new: true
         })
         res.send(result)
@@ -114,4 +157,4 @@ const updatePlaylist = async (req, res) => {
 }
 
 
-module.exports = { createPlaylist, getPlaylists, getPlaylist, deletePlaylist, updatePlaylist }
+module.exports = { createPlaylist, getAllPlaylist, getPlaylist, deletePlaylist, updatePlaylist }

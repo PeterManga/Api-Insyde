@@ -4,7 +4,7 @@ const router = express.Router();
 const playListController = require('../controller/playlist.controller')
 
 //rutas get
-router.get('/playlists',playListController.getPlaylists)
+router.get('/playlists',playListController.getAllPlaylist)
 router.get('/playlist/:id',playListController.getPlaylist)
 
 //rutas post

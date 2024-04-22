@@ -5,7 +5,7 @@ const playerController = require('../controller/player.controller')
 //definimos las rutas
 
 //rutas get
-router.get('/players', playerController.getPlayers)
+router.get('/players', playerController.getAllPlayers)
 router.get('/player/:id', playerController.getPlayer)
 
 //rutas post (crear)

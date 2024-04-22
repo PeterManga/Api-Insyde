@@ -1,5 +1,4 @@
 //Importamos los módulos necesarios
-const { reset } = require('nodemon')
 const playerModel = require('../models/player.model')
 
 const CreatePlayer = async (req, res) =>{
@@ -46,7 +45,7 @@ const getPlayer = async (req, res)=>{
 }
 
 //Esta función devuelve todos los player
-const getPlayers = async (req,res)=>{
+const getAllPlayers = async (req,res)=>{
     try {
         const result = await playerModel.find();
         res.send(result)
@@ -100,4 +99,4 @@ const updatePlayer = async (req, res)=>{
         res.status(500).send(error)
     }
 }
-module.exports = {CreatePlayer, getPlayer, deletePlayer, updatePlayer, getPlayers}
+module.exports = {CreatePlayer, getPlayer, deletePlayer, updatePlayer, getAllPlayers}

@@ -7,7 +7,7 @@ const archiver = require('archiver')
 const axios = require('axios');
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
-const getFiles = async (req, res) => {
+const getAllFiles = async (req, res) => {
 
     try {
         //El parametro req.query devuelve los objetos que coinciden 
@@ -313,4 +313,4 @@ const getPlaylist = async (req, res) => {
 }
 
 
-module.exports = { getFile, updateFile, deleteFile, createFile, getFiles, getMetadatos, getPlaylist }
+module.exports = { getFile, updateFile, deleteFile, createFile, getAllFiles, getMetadatos, getPlaylist }
