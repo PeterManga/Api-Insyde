@@ -36,21 +36,17 @@ const deletePlaylist = async (req, res) => {
 const createPlaylist = async (req, res) => {
     try {
         let nombre = req.body.nombre
-        let duracion = req.body.duracion;
+        let duracion = req.body.duracion || 0; 
         let archivos = req.body.archivos
         let arrayArchivos = []
         let descripcion = req.body.descripcion
 
-        //Comprobamos sí el usuario ha introducido l aduración manualmente, en el caso de ser un video
-        //No se tendrá en cuenta el campo "duración"
-        if (duracion.trim()==0 | duracion==undefined) {
-            duracion = 0
-        }
+        
         //Parseamos los valores
         nombre == nombre.trim() == 0 ? nombre = undefined : nombre = nombre.toLowerCase();
         descripcion == descripcion.trim() == 0 ? descripcion = undefined : descripcion = descripcion.toLowerCase();
         if (archivos !== undefined) {
-            archivos = archivos.split(','); // Convertir la cadena de texto en un array
+            //archivos = archivos.split(','); // Convertir la cadena de texto en un array
             try {
                 //recogemos los datos de la duración de cada archivo
                 //y guardamos el array id del array si es que existe
@@ -96,6 +92,7 @@ const updatePlaylist = async (req, res) => {
     let descripcion = req.body.descripcion
     let archivos = req.body.archivos
     let deleteArchivo = req.body.delete
+    console.log(deleteArchivo)
     let update
     let arrayArchivos = []
     let duracionArchivos = 0
@@ -124,13 +121,21 @@ const updatePlaylist = async (req, res) => {
 
  //Sí el campo deleteArchivo existe, se eliminará el id del archivo en toda la playlist y se descontará el valor de la duración de cada archivo
     if (deleteArchivo) {
+        let result2 = await playlistModel.findOne({ _id: req.params.id })
+        let arrayOriginal = result2.archivos
+        console.log(arrayOriginal)
+        if (arrayOriginal[deleteArchivo]==archivos[deleteArchivo]) {
+            arrayOriginal.splice(deleteArchivo, 1)
+        }
+
         update = {
             nombre: nombre,
             descripcion: descripcion,
-            $pull: { archivos: {$in: arrayArchivos} },
-            $inc: { duracion: - duracionArchivos }
+            $inc: { duracion: - duracionArchivos },
+            archivos: arrayOriginal
     
         }
+       
     }
     // en caso contrario, se añadirá el id del archivo a nuestra playlist y se sumará la duración de los archivos a la de nuestra playlist
     else{
@@ -148,7 +153,7 @@ const updatePlaylist = async (req, res) => {
         const result = await playlistModel.findOneAndUpdate(filter, update, {
             new: true
         })
-        res.send(result)
+        res.status(200).send(result)
 
     } catch (error) {
         console.error(error)

@@ -94,6 +94,7 @@ const updatePlayer = async (req, res)=>{
         const result = await playerModel.findOneAndUpdate( filter, update, {
             new: true
         })
+        return res.send(result)
     } catch (error) {
         console.error(error)
         res.status(500).send(error)

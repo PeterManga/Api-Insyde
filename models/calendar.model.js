@@ -7,18 +7,14 @@
         type: String,
         required: true
     },
-    playlistId: [{
+    playlists: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'playlist.model'
     }],
     fechaInicio: {
         type: Date,
         required: true
-    },
-    fechaFin: {
-        type: Date
     }
-   
     
  },{
     //Este campo añade la fecha de creación y la fecha de actualizacion
