@@ -1,6 +1,7 @@
 //Importamos los módulos necesarios
 const playerModel = require('../models/player.model')
 
+//añadir el campo player para poder almacenar en un array llamado players, los diferentes players
 const CreatePlayer = async (req, res) =>{
     try {
         //recogemos los datos y los parseamos a minúsculas
@@ -72,6 +73,7 @@ const deletePlayer = async (req, res) =>{
     }
 }
 
+//corregir: que update player actulice correctamente la lista de players
 //Esta funcion nos permite actualizar los valores de un player
 const updatePlayer = async (req, res)=>{
     let nombre, descripcion, etiquetas

@@ -28,8 +28,11 @@ const fileSchema = mongoose.Schema({
         duracion: Number
     },
     playlist: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'playlist.model'
+        playlistId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'playlist.model'
+        },
+        playlistName: String
     }]
 }, {
     //Este campo añade la fecha de creación y la fecha de actualizacion

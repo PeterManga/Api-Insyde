@@ -62,12 +62,13 @@ const createFile = async (req, res) => {
             return res.status(400).send('No se ha encontrado ningún archivo.');
         }
         else {
+            console.log(req.body)
             //recogemos los datos y los asignamos al modelo
             //Corregir: El toLowerCase en caso que el usuario no ponga alguno de los campos
             let nombre = req.body.nombre
             let descripcion = req.body.descripcion
             let ubicacion = req.body.ubicacion
-            let playlists = req.body.playlist
+            let playlists = req.body.playlists
             let arrayPlaylist = []
 
             //parseamos los datos recogidos
@@ -132,38 +133,26 @@ const createFile = async (req, res) => {
                     duracion: duracion
                 }
                 //Funcion nueva para guardar la duración del archivo en la playlist
-                if (playlists == undefined | playlists == '') {
-                    // playlists=null
-                    // nuevoFile.playlist = {
-                    //     playlists
-                    // }
-                } else {
+                if (playlists) {
                     playlists = playlists.split(','); // Convertir la cadena de texto en un array
-                    try {
-                        //recogemos los datos de la duración de cada archivo
-                        for (const playlist of playlists) {
-                            if (!arrayPlaylist.includes(playlist)) {
-                                try {
-                                    const query = await playlistModel.findOneAndUpdate(
-                                        { _id: playlist },
-                                        {
-                                            $push: { archivos: nuevoFile._id },
-                                            $inc: { duracion: nuevoFile.datos.duracion } // Sumamos la duración del archivo al campo duracion
-                                        }
-                                    );
-                                    if (query) {
-                                        arrayPlaylist.push(playlist)
-                                        nuevoFile.playlist = query._id
-                                    }
-
-                                } catch (error) {
-                                    console.error(error)
-                                    res.status(500).send(error)
-                                }
+                    for (const playlistId of playlists) {
+                        try {
+                            const playlist = await playlistModel.findOneAndUpdate(
+                                { _id: playlistId },
+                                {
+                                    $push: { archivos: nuevoFile._id },
+                                    $inc: { duracion: nuevoFile.datos.duracion }
+                                },
+                                { new: true }
+                            );
+                            if (playlist) {
+                                // Asignamos el nombre de la playlist al archivo
+                                nuevoFile.playlist.push({ playlistId, playlistName: playlist.nombre });
                             }
+                        } catch (error) {
+                            console.error(error);
+                            res.status(500).send(error);
                         }
-                    } catch (error) {
-                        console.error(error)
                     }
                 }
             }
@@ -174,7 +163,6 @@ const createFile = async (req, res) => {
 
             //asignamos los datos recogidos al nuevo video y esperamos a que se guarden los datos
 
-            console.log(arrayPlaylist)
             await nuevoFile.save();
             //si todo está bien, nos devuelve los datos subidos
             return res.status(201).json(nuevoFile);
@@ -215,7 +203,7 @@ const updateFile = async (req, res) => {
         //Detectamos si el usuario está intentando sustituir el archivo 
         //vinculado a los datos proporcionados por otro nuevo
 
-       const actualizarFile = await fileModel.findOneAndUpdate(filter, update, {
+        const actualizarFile = await fileModel.findOneAndUpdate(filter, update, {
             new: true
         });
 
@@ -240,7 +228,7 @@ const deleteFile = async (req, res) => {
     try {
         //Busca el archivo con id proporcionado en la base de datos y este es borrado
         const File = await fileModel.findOneAndDelete({ _id: req.params.id });
-        let filePlaylists = File.playlist
+        let filePlaylists = File.playlist.map(playlist => playlist.playlistId);
 
         //Si el archivo, no existe, se mostrará el siguiente error
         if (!File) return res.status(404).json({
@@ -253,15 +241,27 @@ const deleteFile = async (req, res) => {
         //Se elimina de cloudinary el archivo asociado al objeto eliminado de mongo
         await cloudinary.deleteFile(File.datos.public_id, type)
 
-        //Eliminamos el archivo de la playlist y restamos la duración
-        for (const playlist of filePlaylists) {
-            await playlistModel.findOneAndUpdate(
-                { _id: playlist },
-                {
-                    $pull: { archivos: File._id },
-                    $inc: { duracion: -File.datos.duracion } // restamos la duración del archivo al campo duracion
+        for (const playlistId of filePlaylists) {
+            try {
+                const playlist = await playlistModel.findById(playlistId);
+                if (playlist) {
+                    const index = playlist.archivos.indexOf(File._id);
+                    console.log(index)
+                    if (index !== -1) {
+                        // El archivo está presente en la lista de archivos de la playlist
+                        playlist.archivos.splice(index, 1); // Eliminar el archivo de la lista
+                        playlist.duracion -= File.datos.duracion; // Restar la duración del archivo
+                        await playlist.save(); // Guardar la playlist actualizada
+                    } else {
+                        console.log(`El archivo ${File._id} no está en la lista de archivos de la playlist ${playlistId}`);
+                    }
+                } else {
+                    console.log(`No se encontró la playlist con ID ${playlistId}`);
                 }
-            );
+            } catch (error) {
+                console.error(`Error al actualizar la playlist ${playlistId}:`, error);
+                res.status(500).send(error);
+            }
         }
         // mostramos los datos eliminados al finalizar todas las operaciones      
         return res.send(File)

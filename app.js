@@ -7,6 +7,9 @@ const playlistRoutes = require('./routes/playlist.routes')
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
+const cors = require('cors');
+
+
 
 
 //Crear una instancia de Express
@@ -15,6 +18,8 @@ const app = express();
 app.use(express.json())
 app.use(morgan('dev'));
 app.use(bodyParser.json());
+// Habilitar CORS para todas las solicitudes
+app.use(cors());
 
 //Fileupload para subir archivos
 app.use(fileUpload({
