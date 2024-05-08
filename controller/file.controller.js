@@ -186,9 +186,10 @@ const updateFile = async (req, res) => {
         let nombre = req.body.nombre
         let descripcion = req.body.descripcion
         let ubicacion = req.body.ubicacion
+        let duracion = req.body.duracion
         let playlists = req.body.playlist
         let arrayPlaylist = []
-
+        console.log(duracion)
         //parseamos los datos recogidos
         nombre == undefined ? nombre = null : nombre = nombre.toLowerCase();
         descripcion == undefined ? descripcion = '' : nombre = nombre.toLowerCase();
@@ -197,11 +198,12 @@ const updateFile = async (req, res) => {
         let update = {
             nombre: nombre,
             descripcion: descripcion,
-            ubicacion: ubicacion
+            ubicacion: ubicacion,
+            datos: {duracion: duracion}
 
         }
-        //Detectamos si el usuario está intentando sustituir el archivo 
-        //vinculado a los datos proporcionados por otro nuevo
+         //vinculado a los datos proporcionados por otro nuevo
+         //corregir: que el campo duracion sume o reste el valor en las respectivas playlists
 
         const actualizarFile = await fileModel.findOneAndUpdate(filter, update, {
             new: true
@@ -220,9 +222,7 @@ const updateFile = async (req, res) => {
     }
 }
 
-//Este método nos permite borrar un archivo con el id especificado en la url tanto en mongodb como en cloudinary
-/* Corregir:  Tenemos eliminar el archivo de todas las playlist en las que se encuentre y reducir el valoir del campo "duracion"
-de la playlist*/
+ 
 const deleteFile = async (req, res) => {
 
     try {
