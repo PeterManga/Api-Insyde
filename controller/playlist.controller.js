@@ -49,44 +49,47 @@ const deletePlaylist = async (req, res) => {
         res.status(500).send(error);
     }
 };
+
+// corregir: este método solo permitirá crear la playlist, 
+// será vacia y luego crearemos otro método para añadir los archivos a la playlist
 const createPlaylist = async (req, res) => {
     try {
         let nombre = req.body.nombre
         let duracion = req.body.duracion || 0;
-        let archivos = req.body.archivos
-        let arrayArchivos = []
+        // let archivos = req.body.archivos
+        // let arrayArchivos = []
         let descripcion = req.body.descripcion
 
 
         //Parseamos los valores
         nombre == nombre.trim() == 0 ? nombre = undefined : nombre = nombre.toLowerCase();
         descripcion == descripcion.trim() == 0 ? descripcion = undefined : descripcion = descripcion.toLowerCase();
-        if (archivos !== undefined) {
-            archivos = archivos.split(','); // Convertir la cadena de texto en un array
-            try {
-                //recogemos los datos de la duración de cada archivo
-                //y guardamos el array id del array si es que existe
-                for (const archivo of archivos) {
-                    try {
-                        const result = await fileModel.findOne({ _id: archivo });
-                        if (result) {
-                            duracion += result.datos.duracion
-                            arrayArchivos.push(archivo)
-                        }
-                    } catch (error) {
-                        console.error(error)
-                        res.status(500).send(error)
-                    }
-                }
-            } catch (error) {
-                console.error(error)
-            }
-        }
+        // if (archivos !== undefined) {
+        //     archivos = archivos.split(','); // Convertir la cadena de texto en un array
+        //     try {
+        //         //recogemos los datos de la duración de cada archivo
+        //         //y guardamos el array id del array si es que existe
+        //         for (const archivo of archivos) {
+        //             try {
+        //                 const result = await fileModel.findOne({ _id: archivo });
+        //                 if (result) {
+        //                     duracion += result.datos.duracion
+        //                     arrayArchivos.push({archivoId:archivo})
+        //                 }
+        //             } catch (error) {
+        //                 console.error(error)
+        //                 res.status(500).send(error)
+        //             }
+        //         }
+        //     } catch (error) {
+        //         console.error(error)
+        //     }
+        // }
 
         //asignamos a result los valore sobtenidos
         const result = new playlistModel({
             nombre: nombre,
-            archivos: arrayArchivos,
+            // archivos: arrayArchivos,
             descripcion: descripcion,
             duracion: duracion
         })

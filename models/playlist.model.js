@@ -11,8 +11,10 @@
         type: Number
     },
     archivos: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'file.model'
+        archivoId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'file.model'
+        }
     }],
     descripcion:{
         type: String
@@ -28,3 +30,4 @@ let Playlist = mongoose.model('playlist', playlistSchema);
 //exportamos
 module.exports = Playlist
  
+
