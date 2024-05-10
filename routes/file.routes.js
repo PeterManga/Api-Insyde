@@ -16,6 +16,8 @@ router.post('/file', fileController.createFile);
 
 // rutas put (Actualizar)
 router.put('/file/:id', fileController.updateFile);
+router.put('/filedetaills/:id', fileController.deleteFilePlaylist)
+
 
 //rutas delete (Eliminar)
 router.delete('/file/:id', fileController.deleteFile);

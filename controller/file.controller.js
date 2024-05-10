@@ -187,9 +187,10 @@ const updateFile = async (req, res) => {
         let descripcion = req.body.descripcion
         let ubicacion = req.body.ubicacion
         let duracion = req.body.duracion
+        let operacion = req.body.operacion
         let playlists = req.body.playlist
-        let arrayPlaylist = []
-        console.log(duracion)
+
+        console.log(operacion)
         //parseamos los datos recogidos
         nombre == undefined ? nombre = null : nombre = nombre.toLowerCase();
         descripcion == undefined ? descripcion = '' : nombre = nombre.toLowerCase();
@@ -198,12 +199,17 @@ const updateFile = async (req, res) => {
         let update = {
             nombre: nombre,
             descripcion: descripcion,
-            ubicacion: ubicacion,
-            datos: {duracion: duracion}
+            ubicacion: ubicacion
 
         }
-         //vinculado a los datos proporcionados por otro nuevo
-         //corregir: que el campo duracion sume o reste el valor en las respectivas playlists
+        if (duracion) {
+
+            update.datos = {
+                duracion: duracion
+            }
+        }
+        //vinculado a los datos proporcionados por otro nuevo
+        //corregir: que el campo duracion sume o reste el valor en las respectivas playlists
 
         const actualizarFile = await fileModel.findOneAndUpdate(filter, update, {
             new: true
@@ -222,14 +228,58 @@ const updateFile = async (req, res) => {
     }
 }
 
- 
+const deleteFilePlaylist = async (req, res) => {
+    try {
+        // Obtener la ID de la playlist de la solicitud
+        const playlistId = req.body.playlist;
+        
+        // Obtenemos la id del arachivo 
+        const id = req.params.id
+        // Obtener el archivo por su ID
+        const file = await fileModel.findById(req.params.id);
+        
+        // Estableceremos la duracion que eliminaremos
+        const duracion = file.datos.duracion;
+
+        // filtramos la playlis que eliminaremos
+        const filePlaylistUpdated = file.playlist.filter(playlist => !playlist.playlistId.toString().includes(playlistId));
+        // console.log(filePlaylistUpdated)
+        // Obtener la playlist por su ID
+        const playlist = await playlistModel.findById(playlistId);
+
+        // Verificar si se encontró la playlist
+        if (playlist) {
+            // Actualizar la duración de la playlist
+            playlist.duracion -= duracion;
+            
+            // //Actualizar el array de arachivos de la playlist
+            playlist.archivos = playlist.archivos.filter((archivo)=>archivo.toString()!==(id)) 
+            console.log(playlist.archivos)
+            // Guardar los cambios en la playlist
+            await playlist.save();
+            
+            console.log("Playlist actualizada correctamente");
+        } else {
+            console.log(`No se encontró la playlist con ID ${playlistId}`);
+        }
+
+        // Mostrar los datos actualizados del archivo
+        file.playlist=filePlaylistUpdated
+        await file.save();
+        res.json(file);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error interno del servidor");
+    }
+};
+
+
 const deleteFile = async (req, res) => {
 
     try {
         //Busca el archivo con id proporcionado en la base de datos y este es borrado
         const File = await fileModel.findOneAndDelete({ _id: req.params.id });
         let filePlaylists = File.playlist.map(playlist => playlist.playlistId);
-
         //Si el archivo, no existe, se mostrará el siguiente error
         if (!File) return res.status(404).json({
             message: 'No se ha encontrado el video'
@@ -313,4 +363,4 @@ const getPlaylist = async (req, res) => {
 }
 
 
-module.exports = { getFile, updateFile, deleteFile, createFile, getAllFiles, getMetadatos, getPlaylist }
+module.exports = { getFile, updateFile, deleteFile, createFile, getAllFiles, getMetadatos, getPlaylist, deleteFilePlaylist }
