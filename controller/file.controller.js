@@ -232,12 +232,12 @@ const deleteFilePlaylist = async (req, res) => {
     try {
         // Obtener la ID de la playlist de la solicitud
         const playlistId = req.body.playlist;
-        
+
         // Obtenemos la id del arachivo 
         const id = req.params.id
         // Obtener el archivo por su ID
         const file = await fileModel.findById(req.params.id);
-        
+
         // Estableceremos la duracion que eliminaremos
         const duracion = file.datos.duracion;
 
@@ -251,20 +251,20 @@ const deleteFilePlaylist = async (req, res) => {
         if (playlist) {
             // Actualizar la duración de la playlist
             playlist.duracion -= duracion;
-            
+
             // //Actualizar el array de arachivos de la playlist
-            playlist.archivos = playlist.archivos.filter((archivo)=>archivo.toString()!==(id)) 
+            playlist.archivos = playlist.archivos.filter((archivo) => archivo.toString() !== (id))
             console.log(playlist.archivos)
             // Guardar los cambios en la playlist
             await playlist.save();
-            
+
             console.log("Playlist actualizada correctamente");
         } else {
             console.log(`No se encontró la playlist con ID ${playlistId}`);
         }
 
         // Mostrar los datos actualizados del archivo
-        file.playlist=filePlaylistUpdated
+        file.playlist = filePlaylistUpdated
         await file.save();
         res.json(file);
     } catch (error) {
@@ -272,6 +272,8 @@ const deleteFilePlaylist = async (req, res) => {
         res.status(500).send("Error interno del servidor");
     }
 };
+
+
 
 
 const deleteFile = async (req, res) => {

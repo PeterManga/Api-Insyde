@@ -33,7 +33,7 @@ const deletePlaylist = async (req, res) => {
         // Eliminar la referencia a la playlist en cada archivo
         const updatePromises = filesToUpdate.map(async (file) => {
             file.playlist = file.playlist.filter(playlist => playlist.playlistId.toString() !== playlistId, console.log(file.playlist)
-        );
+            );
             await file.save();
         });
 
@@ -50,41 +50,69 @@ const deletePlaylist = async (req, res) => {
     }
 };
 
-// corregir: este método solo permitirá crear la playlist, 
+//Esta función nos permite añadir un archivo a la playlist
+const addPlaylistFile = async (req, res) => {
+    const playlistId = req.params.id;
+    const fileID = req.body.fileID
+    const filename = req.body.filename
+    let duracion = req.body.duracion
+    const playlistName = req.body.playlistname
+
+    // Redondear la duración del archivo
+    duracion = parseInt(Math.round(duracion * 100) / 100);
+    console.log(duracion)
+
+    try {
+        const file = await fileModel.findById(fileID);
+        const playlistUpdate = {
+            playlistId: playlistId,
+            playlistName: playlistName
+        };
+
+        file.playlist.push(playlistUpdate);
+        await file.save(); // Guardar los cambios en el archivo
+
+        const playlist = await playlistModel.findById(playlistId);
+        if (playlist) {
+            // Actualizar la duración de la playlist y guardar los cambios
+            playlist.duracion += duracion;
+            // Redondear la duración después de realizar operaciones aritméticas
+            playlist.duracion = parseFloat((playlist.duracion + duracion).toFixed(2));
+            await playlist.save();
+
+            const fileToAdd = {
+                archivoId: fileID,
+                fileName: filename
+            };
+
+            // Añadir el archivo a la playlist y guardar los cambios
+            playlist.archivos.push(fileToAdd);
+            await playlist.save();
+
+            console.log("Playlist actualizada correctamente");
+            res.status(200).send(playlist); // Devolver la playlist actualizada
+        } else {
+            console.log(`No se encontró la playlist con ID ${playlistId}`);
+            res.status(404).send("No se encontró la playlist");
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error interno del servidor");
+    }
+}
+
+// Este método solo permitirá crear la playlist, 
 // será vacia y luego crearemos otro método para añadir los archivos a la playlist
 const createPlaylist = async (req, res) => {
     try {
         let nombre = req.body.nombre
         let duracion = req.body.duracion || 0;
-        // let archivos = req.body.archivos
-        // let arrayArchivos = []
         let descripcion = req.body.descripcion
-
 
         //Parseamos los valores
         nombre == nombre.trim() == 0 ? nombre = undefined : nombre = nombre.toLowerCase();
         descripcion == descripcion.trim() == 0 ? descripcion = undefined : descripcion = descripcion.toLowerCase();
-        // if (archivos !== undefined) {
-        //     archivos = archivos.split(','); // Convertir la cadena de texto en un array
-        //     try {
-        //         //recogemos los datos de la duración de cada archivo
-        //         //y guardamos el array id del array si es que existe
-        //         for (const archivo of archivos) {
-        //             try {
-        //                 const result = await fileModel.findOne({ _id: archivo });
-        //                 if (result) {
-        //                     duracion += result.datos.duracion
-        //                     arrayArchivos.push({archivoId:archivo})
-        //                 }
-        //             } catch (error) {
-        //                 console.error(error)
-        //                 res.status(500).send(error)
-        //             }
-        //         }
-        //     } catch (error) {
-        //         console.error(error)
-        //     }
-        // }
+
 
         //asignamos a result los valore sobtenidos
         const result = new playlistModel({
@@ -104,86 +132,16 @@ const createPlaylist = async (req, res) => {
 }
 
 // método para actualizar los datos de una playlist
-//corregir: hay que comparar el indice que estamos buscando en los datos del array original para evitar eliminar datos de manera erónea
-//Hacer todo esto un un bule for, por ahora solo estamos usando un solo índice
 const updatePlaylist = async (req, res) => {
     let filter = { _id: req.params.id }
     let nombre = req.body.nombre
     let descripcion = req.body.descripcion
-    let archivos = req.body.archivos
-    let deleteArchivo = Array.from(req.body.delete)  //corregir: para que detecte si deleteArchivo es un array o string
-    console.log(deleteArchivo)
     let update
-    let arrayArchivos = []
-    let duracionArchivos = 0
-    // corregir: como puedo saber si el id de archivo que ha proporcionado nos va a servir para eliminar o añadir un archivo a la playlist
-    if (archivos !== undefined) {
-        archivos = archivos.split(','); // Convertir la cadena de texto en un array
-        try {
-            //recogemos los datos de la duración de cada archivo
-            //y guardamos el array id del array si es que existe
-            for (const archivo of archivos) {
-                try {
-                    const result = await fileModel.findOne({ _id: archivo });
-                    if (result) {
-                        duracionArchivos += result.datos.duracion
-                        arrayArchivos.push(result._id)
-                    }
-                } catch (error) {
-                    console.error(error)
-                    res.status(500).send(error)
-                }
-            }
-        } catch (error) {
-            console.error(error)
-        }
-    }
 
-    //Sí el campo deleteArchivo existe, se eliminará el id del archivo en toda la playlist y se descontará el valor de la duración de cada archivo
-    if (deleteArchivo) {
-        let reducirDuracion = 0
-        let result2 = await playlistModel.findOne({ _id: req.params.id })
-        let arrayOriginal = result2.archivos
-        console.log(result2)
-        console.log(archivos)
-        //corregir: convertir deleteArchivo en en un array con todos los indices que dabemos eliminar
+    update = {
+        nombre: nombre,
+        descripcion: descripcion,
 
-        // Iterar sobre deleteArchivo y buscar cada elemento en arrayOriginal
-        for (const deleteIndex of deleteArchivo) {
-            // Obtener el archivo correspondiente en arrayOriginal
-            const archivoAEliminar = arrayOriginal[deleteIndex];
-            // Remover el archivo de arrayOriginal
-            arrayOriginal.splice(deleteIndex, 1);
-
-            try {
-                // Encontrar el archivo en la base de datos para calcular la duración reducida
-                const result = await fileModel.findOne({ _id: archivoAEliminar });
-                if (result) {
-                    reducirDuracion += result.datos.duracion;
-                }
-            } catch (error) {
-                console.error(error);
-                return res.status(500).send(error);
-            }
-        }
-
-        // Actualizar el documento de la playlist con la duración reducida y los archivos actualizados
-        update = {
-            nombre: nombre,
-            descripcion: descripcion,
-            $inc: { duracion: -reducirDuracion },
-            archivos: arrayOriginal
-        };
-    }
-    // en caso contrario, se añadirá el id del archivo a nuestra playlist y se sumará la duración de los archivos a la de nuestra playlist
-    else {
-        update = {
-            nombre: nombre,
-            descripcion: descripcion,
-            $push: { archivos: arrayArchivos },
-            $inc: { duracion: duracionArchivos }
-
-        }
     }
 
 
@@ -200,4 +158,4 @@ const updatePlaylist = async (req, res) => {
 }
 
 
-module.exports = { createPlaylist, getAllPlaylist, getPlaylist, deletePlaylist, updatePlaylist }
+module.exports = { createPlaylist, getAllPlaylist, getPlaylist, deletePlaylist, updatePlaylist, addPlaylistFile }

@@ -14,7 +14,8 @@
         archivoId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'file.model'
-        }
+        },
+        fileName: String
     }],
     descripcion:{
         type: String
