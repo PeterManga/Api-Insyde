@@ -132,29 +132,29 @@ const createFile = async (req, res) => {
                     resource_type: result.resource_type,
                     duracion: duracion
                 }
-                //Funcion nueva para guardar la duración del archivo en la playlist
-                if (playlists) {
-                    playlists = playlists.split(','); // Convertir la cadena de texto en un array
-                    for (const playlistId of playlists) {
-                        try {
-                            const playlist = await playlistModel.findOneAndUpdate(
-                                { _id: playlistId },
-                                {
-                                    $push: { archivos: nuevoFile._id },
-                                    $inc: { duracion: nuevoFile.datos.duracion }
-                                },
-                                { new: true }
-                            );
-                            if (playlist) {
-                                // Asignamos el nombre de la playlist al archivo
-                                nuevoFile.playlist.push({ playlistId, playlistName: playlist.nombre });
-                            }
-                        } catch (error) {
-                            console.error(error);
-                            res.status(500).send(error);
-                        }
-                    }
-                }
+                // //Funcion nueva para guardar la duración del archivo en la playlist
+                // if (playlists) {
+                //     playlists = playlists.split(','); // Convertir la cadena de texto en un array
+                //     for (const playlistId of playlists) {
+                //         try {
+                //             const playlist = await playlistModel.findOneAndUpdate(
+                //                 { _id: playlistId },
+                //                 {
+                //                     $push: { archivos: nuevoFile._id },
+                //                     $inc: { duracion: nuevoFile.datos.duracion }
+                //                 },
+                //                 { new: true }
+                //             );
+                //             if (playlist) {
+                //                 // Asignamos el nombre de la playlist al archivo
+                //                 nuevoFile.playlist.push({ playlistId, playlistName: playlist.nombre });
+                //             }
+                //         } catch (error) {
+                //             console.error(error);
+                //             res.status(500).send(error);
+                //         }
+                //     }
+                // }
             }
             else {
                 //si el archivo introducido no se encuentra en el campo 'archivo' o no se introduce ninguno
@@ -231,29 +231,28 @@ const updateFile = async (req, res) => {
 const deleteFilePlaylist = async (req, res) => {
     try {
         // Obtener la ID de la playlist de la solicitud
-        const playlistId = req.body.playlist;
-
+        const playlistId = req.body.playlistid;
         // Obtenemos la id del arachivo 
         const id = req.params.id
         // Obtener el archivo por su ID
         const file = await fileModel.findById(req.params.id);
 
         // Estableceremos la duracion que eliminaremos
-        const duracion = file.datos.duracion;
-
+        let duracion = file.datos.duracion;
+        duracion = parseInt(Math.round(duracion * 100) / 100);
         // filtramos la playlis que eliminaremos
         const filePlaylistUpdated = file.playlist.filter(playlist => !playlist.playlistId.toString().includes(playlistId));
-        // console.log(filePlaylistUpdated)
+        console.log(filePlaylistUpdated)
         // Obtener la playlist por su ID
         const playlist = await playlistModel.findById(playlistId);
 
         // Verificar si se encontró la playlist
         if (playlist) {
             // Actualizar la duración de la playlist
-            playlist.duracion -= duracion;
+            playlist.duracion = parseFloat((playlist.duracion - duracion).toFixed(2));
 
             // //Actualizar el array de arachivos de la playlist
-            playlist.archivos = playlist.archivos.filter((archivo) => archivo.toString() !== (id))
+            playlist.archivos = playlist.archivos.filter((archivo) =>!archivo.playlistId.toString().includes(id))
             console.log(playlist.archivos)
             // Guardar los cambios en la playlist
             await playlist.save();

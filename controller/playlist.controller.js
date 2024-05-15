@@ -2,6 +2,7 @@
 const playlistModel = require('../models/playlist.model')
 const fileModel = require('../models/file.model');
 const mongoose = require('mongoose');
+const { json } = require('body-parser');
 
 
 const getAllPlaylist = async (req, res) => {
@@ -51,6 +52,7 @@ const deletePlaylist = async (req, res) => {
 };
 
 //Esta función nos permite añadir un archivo a la playlist
+//Corregir: que al añadir un archivo a la playlist, la playlist no se repita aun que el mismo archivo se encuentre repetido 
 const addPlaylistFile = async (req, res) => {
     const playlistId = req.params.id;
     const fileID = req.body.fileID
@@ -89,6 +91,58 @@ const addPlaylistFile = async (req, res) => {
             playlist.archivos.push(fileToAdd);
             await playlist.save();
 
+            console.log("Playlist actualizada correctamente");
+            res.status(200).send(playlist); // Devolver la playlist actualizada
+        } else {
+            console.log(`No se encontró la playlist con ID ${playlistId}`);
+            res.status(404).send("No se encontró la playlist");
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error interno del servidor");
+    }
+}
+//Esta función nos permite añadir un archivo a la playlist
+const deletePlaylistFile = async (req, res) => {
+
+    try {
+        const playlistId = req.params.id;
+        let archivos;
+        console.log(typeof(req.body.archivos))
+        console.log(req.body.archivos)
+        if (typeof(req.body.archivos)=='object') {
+            archivos = req.body.archivos.map(JSON.parse)
+        }
+        else{
+            archivos = JSON.parse(req.body.archivos)
+            console.log(typeof(archivos))
+        }
+        // if(req.body.archivos.length>1 && typeof(req.body.archivos)==Object){
+        //      archivos = req.body.archivos.map(JSON.parse)
+        // }
+        // else if(req.body.archivos==undefined){
+        //     archivos = []
+        // }
+        // else{
+        //     archivos= JSON.parse(req.body.archivos)
+        // }
+        console.log(archivos)
+        console.log(typeof(archivos))
+        
+
+        const fileID = req.body.fileid
+        console.log(archivos)
+
+        const file = await fileModel.findById(fileID);
+        const duracion = file.datos.duracion;
+        const playlist = await playlistModel.findById(playlistId);
+        if (playlist) {
+            // Actualizar la duración de la playlist y guardar los cambios
+            // Redondear la duración después de realizar operaciones aritméticas
+            playlist.duracion = parseFloat((playlist.duracion - duracion).toFixed(2));
+            // Añadir el archivo a la playlist y guardar los cambios
+            playlist.archivos = archivos;
+            await playlist.save();
             console.log("Playlist actualizada correctamente");
             res.status(200).send(playlist); // Devolver la playlist actualizada
         } else {
@@ -158,4 +212,4 @@ const updatePlaylist = async (req, res) => {
 }
 
 
-module.exports = { createPlaylist, getAllPlaylist, getPlaylist, deletePlaylist, updatePlaylist, addPlaylistFile }
+module.exports = { createPlaylist, getAllPlaylist, getPlaylist, deletePlaylist, updatePlaylist, addPlaylistFile, deletePlaylistFile }
