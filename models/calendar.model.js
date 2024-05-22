@@ -1,5 +1,3 @@
-
-//importación de módulos
 const mongoose = require('mongoose');
 
 const calendarSchema = mongoose.Schema({
@@ -7,31 +5,27 @@ const calendarSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    evento: [{
-        playlistId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'playlist.model'
-        },
-        playlistName: String,
-        playerId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'player.model'
-        },
-        playerName: String,
-        fechaInicio: {
-            type: Date,
-            required: true
-        },
-        fechaFin: {
-            type: Date,
-            required: true
-        },
-        eventoName: String,
-        eventoDescripcion: String,
-        repetir: Boolean
-    }]
-
+    descripcion:{
+        type: String
+    },
+    fechaInicio:{
+        type: Date
+    },
+    fechaFin:{
+        type: Date
+    },
+    playlist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'playlist'
+    }],
+    player: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'player',
+        required: true
+    },
 }, {
-    //Este campo añade la fecha de creación y la fecha de actualizacion
     timestamps: true
-})
+});
+
+const Calendar = mongoose.model('calendar', calendarSchema);
+module.exports = Calendar;

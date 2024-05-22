@@ -13,9 +13,6 @@ const fileSchema = mongoose.Schema({
     ubicacion: {
         type: String
     },
-    duracion: {
-        type: String
-    },
     datos: {
         public_id: String,
         url: String,

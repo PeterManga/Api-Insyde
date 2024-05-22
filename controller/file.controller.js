@@ -69,6 +69,7 @@ const createFile = async (req, res) => {
             let descripcion = req.body.descripcion
             let ubicacion = req.body.ubicacion
             let playlists = req.body.playlists
+            let ImagenDuracion = req.body.duracion
             let arrayPlaylist = []
 
             //parseamos los datos recogidos
@@ -118,7 +119,7 @@ const createFile = async (req, res) => {
                 if (type === 'video') {
                     duracion = metadatosVideo.video_metadata.format_duration
                 } else {
-                    duracion = 15
+                    duracion = ImagenDuracion
                 }
                 //recogemos los datos del video subido y se los añadimos al modelo
                 nuevoFile.datos = {

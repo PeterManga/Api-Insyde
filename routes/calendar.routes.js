@@ -4,13 +4,16 @@ const calendarController = require('../controller/calendar.controller')
 
 //rutas get
 router.get('/calendars', calendarController.getAllCalendars);
+router.get('/calendarplayer', calendarController.findCalendarByPlayer);
 router.get('/calendar/:id', calendarController.getCalendar)
 
 //rutas post
-router.post('./calendar', calendarController.createCalendar)
+router.post('/calendar', calendarController.createCalendar)
 
 //rutas update
 router.put('/calendar/:id', calendarController.updateCalendar)
 
 //rutas delete
 router.delete('/calendar/:id', calendarController.deleteCalendar)
+//exportamos
+module.exports = router

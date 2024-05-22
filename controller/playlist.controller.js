@@ -16,7 +16,7 @@ const getAllPlaylist = async (req, res) => {
 const getPlaylist = async (req, res) => {
     try {
         let id = req.params.id;
-        let result = await playlistModel.findOne({ _id: id })
+        let result = await playlistModel.findOne({ _id: id }).populate()
         return res.send(result)
     } catch (error) {
         console.error(error)
@@ -61,7 +61,7 @@ const addPlaylistFile = async (req, res) => {
     const playlistName = req.body.playlistname
 
     // Redondear la duración del archivo
-    duracion = parseInt(Math.round(duracion * 100) / 100);
+    duracion = parseFloat(Math.round(duracion * 100) / 100);
     console.log(duracion)
 
     try {
@@ -76,8 +76,7 @@ const addPlaylistFile = async (req, res) => {
 
         const playlist = await playlistModel.findById(playlistId);
         if (playlist) {
-            // Actualizar la duración de la playlist y guardar los cambios
-            playlist.duracion += duracion;
+           
             // Redondear la duración después de realizar operaciones aritméticas
             playlist.duracion = parseFloat((playlist.duracion + duracion).toFixed(2));
             await playlist.save();
