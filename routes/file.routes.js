@@ -6,10 +6,11 @@ const fileController = require('../controller/file.controller')
 //definimos las rutas
 
 //rutas get
-router.get('/files',fileController.getAllFiles); //Obtener
+router.get('/files',fileController.getAllFiles); 
 router.get('/file/:id',fileController.getFile);
 router.get('/fileMetadatos/:id', fileController.getMetadatos)
-router.get('/getPlaylist', fileController.getPlaylist);
+router.get('/downloadplaylist', fileController.downloadPlaylist);
+router.get('/getplaylist', fileController.getFilesByPlayer);
 
 //rutas post (Crear)
 router.post('/file', fileController.createFile);

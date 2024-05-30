@@ -2,9 +2,11 @@
 const fileModel = require('../models/file.model.js');
 const cloudinary = require('../utils/cloudinary.js');
 const playlistModel = require('../models/playlist.model.js')
+const Calendar = require('../models/calendar.model.js');
 const fsExtra = require('fs-extra')
 const archiver = require('archiver')
 const axios = require('axios');
+const mongoose = require('mongoose');
 
 //Este método nos devuelve todos los vides alojados en nuetra base de datos.
 const getAllFiles = async (req, res) => {
@@ -133,29 +135,7 @@ const createFile = async (req, res) => {
                     resource_type: result.resource_type,
                     duracion: duracion
                 }
-                // //Funcion nueva para guardar la duración del archivo en la playlist
-                // if (playlists) {
-                //     playlists = playlists.split(','); // Convertir la cadena de texto en un array
-                //     for (const playlistId of playlists) {
-                //         try {
-                //             const playlist = await playlistModel.findOneAndUpdate(
-                //                 { _id: playlistId },
-                //                 {
-                //                     $push: { archivos: nuevoFile._id },
-                //                     $inc: { duracion: nuevoFile.datos.duracion }
-                //                 },
-                //                 { new: true }
-                //             );
-                //             if (playlist) {
-                //                 // Asignamos el nombre de la playlist al archivo
-                //                 nuevoFile.playlist.push({ playlistId, playlistName: playlist.nombre });
-                //             }
-                //         } catch (error) {
-                //             console.error(error);
-                //             res.status(500).send(error);
-                //         }
-                //     }
-                // }
+
             }
             else {
                 //si el archivo introducido no se encuentra en el campo 'archivo' o no se introduce ninguno
@@ -253,7 +233,7 @@ const deleteFilePlaylist = async (req, res) => {
             playlist.duracion = parseFloat((playlist.duracion - duracion).toFixed(2));
 
             // //Actualizar el array de arachivos de la playlist
-            playlist.archivos = playlist.archivos.filter((archivo) =>!archivo.playlistId.toString().includes(id))
+            playlist.archivos = playlist.archivos.filter((archivo) => !archivo.playlistId.toString().includes(id))
             console.log(playlist.archivos)
             // Guardar los cambios en la playlist
             await playlist.save();
@@ -325,16 +305,31 @@ const deleteFile = async (req, res) => {
 }
 
 //este método descarga todos los videos que pertenezcana la ubicación indicada
-const getPlaylist = async (req, res) => {
+const downloadPlaylist = async (req, res) => {
 
     try {
-        //El parametro req.query devuelve los objetos que coinciden 
-        //con los parametros solicitados por el usuario
-        let ubicacion = req.query.ubicacion
-        let lowerUbicacion = ubicacion.toLowerCase()
+        const playerId = new mongoose.Types.ObjectId(req.query.player);
+        console.log(playerId)
+        // Obtener todos los calendarios asociados al player
+        const calendars = await Calendar.find({ player: playerId }).populate({
+            path: 'playlist',
+            populate: {
+                path: 'archivos.archivoId',
+                model: 'file'
+            }
+        });
 
-        const file = await fileModel.find({ ubicacion: lowerUbicacion });
-        if (file.length >= 1) {
+        // Extraer todas las playlists de los calendarios
+        const allPlaylists = calendars.reduce((acc, calendar) => acc.concat(calendar.playlist), []);
+
+        // Extraer todos los archivos de las playlists
+        const allFiles = allPlaylists.reduce((acc, playlist) => acc.concat(playlist.archivos.map(archivo => archivo.archivoId)), []);
+
+        // Eliminar duplicados
+        const uniqueFiles = Array.from(new Set(allFiles.map(file => file._id.toString())))
+            .map(id => allFiles.find(file => file._id.toString() === id));
+        console.log(uniqueFiles.length)
+        if (uniqueFiles.length >= 1) {
             // Crear un objeto Archiver para el archivo ZIP
             const zip = archiver('zip', {
                 zlib: { level: 9 } // Nivel de compresión
@@ -342,7 +337,7 @@ const getPlaylist = async (req, res) => {
             // Configurar la respuesta HTTP para que el navegador descargue el archivo ZIP
             res.attachment('playlist.zip');
             zip.pipe(res);
-            for (const files of file) {
+            for (const files of uniqueFiles) {
                 const url = files.datos.url;
                 const nombre = files.nombre;
                 const extension = files.datos.format;
@@ -357,12 +352,41 @@ const getPlaylist = async (req, res) => {
         } else {
             return res.status(300).send('No se han encontrado archivos')
         }
-
+        // res.status(200).json(uniqueFiles);
     } catch (error) {
-        console.log(error);
-        res.status(500).send(error);
+        console.error(error);
+        res.status(500).send("Error interno del servidor");
     }
 }
 
 
-module.exports = { getFile, updateFile, deleteFile, createFile, getAllFiles, getMetadatos, getPlaylist, deleteFilePlaylist }
+const getFilesByPlayer = async (req, res) => {
+    try {
+        const playerId = new mongoose.Types.ObjectId(req.query.player);
+        console.log(playerId)
+        // Obtener todos los calendarios asociados al player
+        const calendars = await Calendar.find({ player: playerId }).populate({
+            path: 'playlist',
+            populate: {
+                path: 'archivos.archivoId',
+                model: 'file'
+            }
+        });
+
+        // Extraer todas las playlists de los calendarios
+        const allPlaylists = calendars.reduce((acc, calendar) => acc.concat(calendar.playlist), []);
+
+        // Extraer todos los archivos de las playlists
+        const allFiles = allPlaylists.reduce((acc, playlist) => acc.concat(playlist.archivos.map(archivo => archivo.archivoId)), []);
+
+        return res.send(allFiles)
+        //  res.status(200).json(allFiles);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error interno del servidor");
+    }
+};
+
+
+
+module.exports = { getFile, updateFile, deleteFile, createFile, getAllFiles, getMetadatos, downloadPlaylist, deleteFilePlaylist, getFilesByPlayer }

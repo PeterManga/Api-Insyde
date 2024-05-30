@@ -6,6 +6,8 @@ const calendarController = require('../controller/calendar.controller')
 router.get('/calendars', calendarController.getAllCalendars);
 router.get('/calendarplayer', calendarController.findCalendarByPlayer);
 router.get('/calendar/:id', calendarController.getCalendar)
+router.get('/downloadcalendar/', calendarController.downloadPlaylist)
+router.get('/calendarevent', calendarController.getActiveEvent);
 
 //rutas post
 router.post('/calendar', calendarController.createCalendar)

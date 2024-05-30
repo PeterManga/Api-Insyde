@@ -76,7 +76,7 @@ const addPlaylistFile = async (req, res) => {
 
         const playlist = await playlistModel.findById(playlistId);
         if (playlist) {
-           
+
             // Redondear la duración después de realizar operaciones aritméticas
             playlist.duracion = parseFloat((playlist.duracion + duracion).toFixed(2));
             await playlist.save();
@@ -107,14 +107,14 @@ const deletePlaylistFile = async (req, res) => {
     try {
         const playlistId = req.params.id;
         let archivos;
-        console.log(typeof(req.body.archivos))
-        console.log(req.body.archivos)
-        if (typeof(req.body.archivos)=='object') {
+        // console.log(typeof(req.body.archivos))
+        // console.log(req.body.archivos)
+        if (typeof (req.body.archivos) == 'object') {
             archivos = req.body.archivos.map(JSON.parse)
         }
-        else{
+        else {
             archivos = JSON.parse(req.body.archivos)
-            console.log(typeof(archivos))
+            console.log(typeof (archivos))
         }
         // if(req.body.archivos.length>1 && typeof(req.body.archivos)==Object){
         //      archivos = req.body.archivos.map(JSON.parse)
@@ -125,15 +125,23 @@ const deletePlaylistFile = async (req, res) => {
         // else{
         //     archivos= JSON.parse(req.body.archivos)
         // }
-        console.log(archivos)
-        console.log(typeof(archivos))
-        
+        // console.log(archivos)
+        // console.log(typeof(archivos))
+
 
         const fileID = req.body.fileid
         console.log(archivos)
 
         const file = await fileModel.findById(fileID);
+        console.log(file.playlist)
         const duracion = file.datos.duracion;
+        // Eliminar solo una instancia específica de la playlist del archivo
+        const playlistIndex = file.playlist.findIndex(pl => pl.playlistId.toString() === playlistId);
+        if (playlistIndex !== -1) {
+            file.playlist.splice(playlistIndex, 1);
+            await file.save();
+        }
+        console.log(file.playlist)
         const playlist = await playlistModel.findById(playlistId);
         if (playlist) {
             // Actualizar la duración de la playlist y guardar los cambios
@@ -141,6 +149,31 @@ const deletePlaylistFile = async (req, res) => {
             playlist.duracion = parseFloat((playlist.duracion - duracion).toFixed(2));
             // Añadir el archivo a la playlist y guardar los cambios
             playlist.archivos = archivos;
+            await playlist.save();
+
+            console.log("Playlist actualizada correctamente");
+            res.status(200).send(playlist); // Devolver la playlist actualizada
+        } else {
+            console.log(`No se encontró la playlist con ID ${playlistId}`);
+            res.status(404).send("No se encontró la playlist");
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error interno del servidor");
+    }
+}
+
+//Esta función nos permite añadir un archivo a la playlist
+//Corregir: que al añadir un archivo a la playlist, la playlist no se repita aun que el mismo archivo se encuentre repetido 
+const updatePlaylistFile = async (req, res) => {
+    try {
+        const playlistId = req.params.id;
+        const playlistFiles = JSON.parse(req.body.files);
+        const playlist = await playlistModel.findById(playlistId);
+
+        if (playlist) {
+            // Actualiza el valor de los archivos de la playlist con los nuevos archivos obtenidos
+            playlist.archivos = playlistFiles;
             await playlist.save();
             console.log("Playlist actualizada correctamente");
             res.status(200).send(playlist); // Devolver la playlist actualizada
@@ -194,9 +227,7 @@ const updatePlaylist = async (req, res) => {
     update = {
         nombre: nombre,
         descripcion: descripcion,
-
     }
-
 
     try {
         const result = await playlistModel.findOneAndUpdate(filter, update, {
@@ -211,4 +242,4 @@ const updatePlaylist = async (req, res) => {
 }
 
 
-module.exports = { createPlaylist, getAllPlaylist, getPlaylist, deletePlaylist, updatePlaylist, addPlaylistFile, deletePlaylistFile }
+module.exports = { createPlaylist, getAllPlaylist, getPlaylist, deletePlaylist, updatePlaylist, addPlaylistFile, deletePlaylistFile, updatePlaylistFile }

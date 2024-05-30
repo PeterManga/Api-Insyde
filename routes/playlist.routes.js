@@ -17,5 +17,7 @@ router.delete('/playlist/:id',playListController.deletePlaylist)
 router.put('/playlist/:id', playListController.updatePlaylist)
 router.put('/playlistdetails/:id/addFile', playListController.addPlaylistFile)
 router.put('/playlistdetails/:id/deleteFile', playListController.deletePlaylistFile)
+router.put('/playlistdetails/:id/updateplaylist', playListController.updatePlaylistFile)
+
 //exportamos
 module.exports = router

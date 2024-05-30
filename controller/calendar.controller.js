@@ -1,20 +1,31 @@
 const calendarModel = require('../models/calendar.model.js')
+const playlistModel = require('../models/playlist.model.js')
+const mongoose = require('mongoose');
 
 
 // Esta función nos permite crear un nuevo calendario
 const createCalendar = async (req, res) => {
     try {
+       console.log(req.body)
+
         let nombre = req.body.nombre;
         let playlist = req.body.playlist;
-        let player = req.body.player;
+        let player = new mongoose.Types.ObjectId(req.body.player)
+        let fechainicio = new Date(req.body.fechainicio)
+        let fechafin = new Date(req.body.fechafin)
+        let descripcion = req.body.descripcion
 
-        // let fechainicio = req.body.fechainicio
-        // let fechafin = req.body.fechainicio
+         // Convertir string de playlists a array de ObjectIds
+         const playlistIds = playlist.split(',').map(id =>new  mongoose.Types.ObjectId(id.trim()));
+         console.log(req.body)
 
         const result = new calendarModel({
             nombre: nombre,
-            playlist: playlist,
-            player: player
+            playlist: playlistIds,
+            player: player,
+            fechaInicio: fechainicio,
+            fechaFin: fechafin,
+            descripcion: descripcion
         })
         await result.save();
         console.log(result)
@@ -60,14 +71,12 @@ const getCalendar = async (req, res) => {
 //Esta funcion nos permite encontrar ecentos segun el el player
 const findCalendarByPlayer = async (req, res) => {
     try {
-        let playerId = req.query.player;
-
+        let playerId =  new mongoose.Types.ObjectId(req.query.player)
         // Filtrar los calendarios por el ID del player
-        const result = await calendarModel.find({ 'player': playerId })
-            .populate('player') // Poblar el campo 'player'
-        // .populate('playlist'); // Poblar el campo 'playlist'
+        const result = await calendarModel.find({ 'player': playerId }).populate('player') // Poblar el campo 'player'
+         
         console.log(result);
-        res.status(200).json(result); // Usar .json() para enviar la respuesta
+        res.status(200).send(result); 
     } catch (error) {
         console.error(error);
         res.status(500).send(error);
@@ -125,18 +134,40 @@ const updateCalendar = async (req, res) => {
 // Función para obtener el evento activo en la fecha actual
 const getActiveEvent = async (req, res) => {
     try {
+        const playerId = new mongoose.Types.ObjectId(req.query.player);
         const currentDate = new Date();
 
-        // Consultar el evento que está activo en la fecha actual
-        const activeEvent = await calendarModel.findOne({
+        // Consultar el evento activo para el player con el id que indiquemos
+        let activeEvent = await calendarModel.findOne({
+            player: playerId,
             fechaInicio: { $lte: currentDate },
             fechaFin: { $gte: currentDate }
-        }).populate('player').populate('playlist');
+        }).populate({
+            path: 'playlist',
+            populate: {
+                path: 'archivos.archivoId',
+                model: 'file'
+            }
+        }).populate('player');
+
+        // Si no hay un evento activo, buscar el evento más reciente
+        if (!activeEvent) {
+            activeEvent = await calendarModel.findOne({
+                player: playerId,
+                fechaFin: { $lt: currentDate }
+            }).sort({ fechaFin: -1 }).populate({
+                path: 'playlist',
+                populate: {
+                    path: 'archivos.archivoId',
+                    model: 'file'
+                }
+            }).populate('player');
+        }
 
         if (activeEvent) {
             res.status(200).json(activeEvent);
         } else {
-            res.status(404).json({ message: 'No active event found' });
+            res.status(404).json({ message: 'No se han encontrado eventos activos o recientes en este player' });
         }
     } catch (error) {
         console.error(error);
@@ -145,4 +176,47 @@ const getActiveEvent = async (req, res) => {
 }
 
 
-module.exports = { getAllCalendars, getCalendar, createCalendar, deleteCalendar, updateCalendar, findCalendarByPlayer, getActiveEvent }
+
+//este método descarga todos los videos que pertenezcana la ubicación indicada
+const downloadPlaylist = async (req, res) => {
+
+    // try {
+    //     //El parametro req.query devuelve los objetos que coinciden 
+    //     //con los parametros solicitados por el usuario
+    //     let player = req.query.player
+
+    //     const file = await calendarModel.find({ 'player': player })
+    //     .populate('playlist')
+    //     console.log(file.length);
+    //     res.status(200).send(file);
+    //     if (file.length >= 1) {
+    //         // Crear un objeto Archiver para el archivo ZIP
+    //         const zip = archiver('zip', {
+    //             zlib: { level: 9 } // Nivel de compresión
+    //         });
+    //         // Configurar la respuesta HTTP para que el navegador descargue el archivo ZIP
+    //         res.attachment('playlist.zip');
+    //         zip.pipe(res);
+    //         for (const files of file) {
+    //             const url = files.datos.url;
+    //             const nombre = files.nombre;
+    //             const extension = files.datos.format;
+    //             //usamos axios para realizar peticiones a las urls
+    //             const response = await axios.get(url, { responseType: 'stream' });
+    //             const nombreArchivo = `${nombre}.${extension}`;
+    //             zip.append(response.data, { name: nombreArchivo });
+    //         }
+    //         // Finalizar el archivo ZIP y enviarlo
+    //         zip.finalize();
+
+    //     } else {
+    //         return res.status(300).send('No se han encontrado archivos')
+    //     }
+
+    // } catch (error) {
+    //     console.log(error);
+    //     res.status(500).send(error);
+    // }
+}
+
+module.exports = { getAllCalendars, getCalendar, createCalendar, deleteCalendar, updateCalendar, findCalendarByPlayer, getActiveEvent, downloadPlaylist }
