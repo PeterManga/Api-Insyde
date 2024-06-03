@@ -2,22 +2,23 @@
 const express = require('express');
 const router = express.Router();
 const playListController = require('../controller/playlist.controller')
+const authRequired = require('../middlewares/auth.middleware')
 
 //rutas get
-router.get('/playlists',playListController.getAllPlaylist)
-router.get('/playlist/:id',playListController.getPlaylist)
+router.get('/playlists',authRequired, playListController.getAllPlaylist)
+router.get('/playlist/:id',authRequired, playListController.getPlaylist)
 
 //rutas post
-router.post('/playlist', playListController.createPlaylist )
+router.post('/playlist',authRequired, playListController.createPlaylist )
 
 //rutas delete
-router.delete('/playlist/:id',playListController.deletePlaylist)
+router.delete('/playlist/:id',authRequired, playListController.deletePlaylist)
 
 //rutas put (update)
-router.put('/playlist/:id', playListController.updatePlaylist)
-router.put('/playlistdetails/:id/addFile', playListController.addPlaylistFile)
-router.put('/playlistdetails/:id/deleteFile', playListController.deletePlaylistFile)
-router.put('/playlistdetails/:id/updateplaylist', playListController.updatePlaylistFile)
+router.put('/playlist/:id',authRequired, playListController.updatePlaylist)
+router.put('/playlistdetails/:id/addFile',authRequired, playListController.addPlaylistFile)
+router.put('/playlistdetails/:id/deleteFile',authRequired, playListController.deletePlaylistFile)
+router.put('/playlistdetails/:id/updateplaylist',authRequired, playListController.updatePlaylistFile)
 
 //exportamos
 module.exports = router

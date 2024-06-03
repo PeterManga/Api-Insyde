@@ -1,21 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const calendarController = require('../controller/calendar.controller')
+const authRequired = require('../middlewares/auth.middleware')
 
 //rutas get
-router.get('/calendars', calendarController.getAllCalendars);
-router.get('/calendarplayer', calendarController.findCalendarByPlayer);
-router.get('/calendar/:id', calendarController.getCalendar)
-router.get('/downloadcalendar/', calendarController.downloadPlaylist)
-router.get('/calendarevent', calendarController.getActiveEvent);
+router.get('/calendars',authRequired, calendarController.getAllCalendars);
+router.get('/calendarplayer',authRequired, calendarController.findCalendarByPlayer);
+router.get('/calendar/:id',authRequired, calendarController.getCalendar)
+router.get('/downloadcalendar/',authRequired, calendarController.downloadPlaylist)
+router.get('/calendarevent',authRequired, calendarController.getActiveEvent);
 
 //rutas post
-router.post('/calendar', calendarController.createCalendar)
+router.post('/calendar',authRequired, calendarController.createCalendar)
 
 //rutas update
-router.put('/calendar/:id', calendarController.updateCalendar)
+router.put('/calendar/:id',authRequired, calendarController.updateCalendar)
 
 //rutas delete
-router.delete('/calendar/:id', calendarController.deleteCalendar)
+router.delete('/calendar/:id',authRequired, calendarController.deleteCalendar)
+
 //exportamos
 module.exports = router

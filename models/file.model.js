@@ -14,6 +14,7 @@ const fileSchema = mongoose.Schema({
         type: String
     },
     datos: {
+        //Estos datos los obtendremos de los metadatos
         public_id: String,
         url: String,
         resource_type: String,  //tipo de recurso video/imagen/etc
