@@ -3,3 +3,4 @@ dasd
 **/temp
 .env
 **files
+.vercel
