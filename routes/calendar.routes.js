@@ -8,7 +8,7 @@ router.get('/calendars',authRequired, calendarController.getAllCalendars);
 router.get('/calendarplayer',authRequired, calendarController.findCalendarByPlayer);
 router.get('/calendar/:id',authRequired, calendarController.getCalendar)
 router.get('/downloadcalendar/',authRequired, calendarController.downloadPlaylist)
-router.get('/calendarevent',authRequired, calendarController.getActiveEvent);
+router.get('/calendarevent', calendarController.getActiveEvent);
 
 //rutas post
 router.post('/calendar',authRequired, calendarController.createCalendar)

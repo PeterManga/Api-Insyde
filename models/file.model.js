@@ -1,6 +1,5 @@
 //importacion de módulos
 const mongoose = require('mongoose');
-
 // Definición del esquema
 const fileSchema = mongoose.Schema({
     nombre: {
@@ -22,7 +21,6 @@ const fileSchema = mongoose.Schema({
         asset_id: String,
         width: String,
         height: String,
-        //Este campo será util a la hora de crear una playlist para los videos
         duracion: Number
     },
     playlist: [{
@@ -36,9 +34,7 @@ const fileSchema = mongoose.Schema({
     //Este campo añade la fecha de creación y la fecha de actualizacion
     timestamps: true
 })
-
 // Asociación con el modelo
 let File = mongoose.model('file', fileSchema);
-
 //exportamos
 module.exports = File

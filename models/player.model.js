@@ -21,7 +21,6 @@ const playerSchema = mongoose.Schema({
         type: String,
         require
     }
-
 }, {
     //Este campo añade la fecha de creación y la fecha de actualizacion
     timestamps: true

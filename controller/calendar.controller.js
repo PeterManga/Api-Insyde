@@ -136,7 +136,6 @@ const getActiveEvent = async (req, res) => {
     try {
         const playerId = new mongoose.Types.ObjectId(req.query.player);
         const currentDate = new Date();
-
         // Consultar el evento activo para el player con el id que indiquemos
         let activeEvent = await calendarModel.findOne({
             player: playerId,
@@ -149,6 +148,7 @@ const getActiveEvent = async (req, res) => {
                 model: 'file'
             }
         }).populate('player');
+        console.log(activeEvent)
 
         // Si no hay un evento activo, buscar el evento más reciente
         if (!activeEvent) {
@@ -165,6 +165,7 @@ const getActiveEvent = async (req, res) => {
         }
 
         if (activeEvent) {
+            console.log(activeEvent)
             res.status(200).json(activeEvent);
         } else {
             res.status(404).json({ message: 'No se han encontrado eventos activos o recientes en este player' });
