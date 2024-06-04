@@ -19,12 +19,12 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 // Configurar CORS
 app.use(cors({
-    origin: ['http://localhost:5174', 'http://localhost:5173/', 'https://crud-insyde-90fzt6ycy-pedros-projects-02f7d853.vercel.app/'],
+    origin: ['http://localhost:5174', 'http://localhost:5173/', 'https://crud-insyde.vercel.app/'],
     credentials: true
 }));
 // Middleware para habilitar CORS y permitir el uso de credenciales
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:5173", "http://localhost:5174/", "https://crud-insyde-90fzt6ycy-pedros-projects-02f7d853.vercel.app/");
+    res.header("Access-Control-Allow-Origin", "http://localhost:5173", "http://localhost:5174/", "https://crud-insyde.vercel.app/");
     res.header("Access-Control-Allow-Credentials", "true"); 
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
