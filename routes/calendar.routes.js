@@ -6,7 +6,7 @@ const authRequired = require('../middlewares/auth.middleware')
 //rutas get
 router.get('/calendars',authRequired, calendarController.getAllCalendars);
 router.get('/calendarplayer',authRequired, calendarController.findCalendarByPlayer);
-router.get('/calendar/:id',authRequired, calendarController.getCalendar)
+router.get('/calendar/:id', calendarController.getCalendar)
 router.get('/downloadcalendar/',authRequired, calendarController.downloadPlaylist)
 router.get('/calendarevent', calendarController.getActiveEvent);
 

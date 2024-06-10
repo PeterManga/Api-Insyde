@@ -19,15 +19,16 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 // Configurar CORS
 app.use(cors({
-    origin: '*',
-    credentials: true
+    origin: ['https://crud-insyde.vercel.app','https://crud-insyde.vercel.app/login', '*','http://localhost:5173','video-player-gules-phi.vercel.app'],
+    credentials: true,
 }));
 // Middleware para habilitar CORS y permitir el uso de credenciales
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Credentials", "true"); 
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+    res.header('Access-Control-Allow-Origin', '*','https://crud-insyde.vercel.app/login','https://crud-insyde.vercel.app');
+    res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method','*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE,*');
+    res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE,*');
+    res.header("Access-Control-Allow-Credentials", "true",'*'); 
     next();
 });
 // Fileupload para subir archivos

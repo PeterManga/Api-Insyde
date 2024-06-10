@@ -8,7 +8,7 @@ function createAccessToken(payload) {
             payload
 
         }, process.env.token_secret,
-            { expiresIn: '2d' },
+            { expiresIn: '2h' },
             (err, token) => {
                 if (err) reject(err);
                 resolve(token)
